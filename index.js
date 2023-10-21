@@ -15,6 +15,7 @@ app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({extended:false}))
 app.use('/api/v1',require('./src/routes/user.route'))
+app.use("/user/v1",require('./src/routes/userLogin.route'))
 app.listen(PORT,()=>{
     console.log(`listen ${PORT}`)
 })
