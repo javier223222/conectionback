@@ -7,6 +7,7 @@ const { uploadImage } = require("../config/cloundinary.config");
 const addimageprofile=async(req,res)=>{
   try{
      console.log(req.headers)
+     const {type}=req.body
     const data=await getTokenData(req.headers.authorization)
     console.log(data)
     if(data==null){
@@ -28,7 +29,7 @@ const addimageprofile=async(req,res)=>{
         const imageur=await uploadImage(req.files.imagenprofile.tempFilePath)
         console.log(imageur)
         const insert=await pool.execute("insert into image values(?,?,?)",[code,imageur.secure_url,imageur.public_id])
-        const insertima=await pool.execute("insert into usersimages(username,idimage,typeofimage) values(?,?,?)",[username,code,"perfilimage"])
+        const insertima=await pool.execute("insert into usersimages(username,idimage,typeofimage) values(?,?,?)",[username,code,type])
         await fs.unlink(req.files.imagenprofile.tempFilePath)
         return res.status(200).json({
             success:true,
@@ -69,6 +70,7 @@ const getprofileImageb=async(req,res)=>{
 
     const data=await getTokenData(req.headers.authorization)
     const {username}=req.query
+    const {type}=req.body
     // if(username==null){
     //     res.status(404).json({
     //         success:false,
@@ -78,7 +80,7 @@ const getprofileImageb=async(req,res)=>{
     if(username){
         const [rows,field]=await pool.execute(`select usi.dateofimage,i.urlimage from usersimages usi 
         inner join image i on usi.idimage=i.idimage and usi.username=?  and usi.typeofimage=?
-        ORDER BY usi.dateofimage desc limit 1`,[username,'perfilimage'])
+        ORDER BY usi.dateofimage desc limit 1`,[username,type])
         console.log(rows)
         if(rows==[]){
             res.status(404).json({
@@ -113,7 +115,7 @@ const getprofileImageb=async(req,res)=>{
 
         const [result]=await pool.query(`select usi.dateofimage,i.urlimage from usersimages usi 
         inner join image i on usi.idimage=i.idimage and usi.username=?  and usi.typeofimage=?
-        ORDER BY usi.dateofimage desc limit 1`,[username,'perfilimage'])
+        ORDER BY usi.dateofimage desc limit 1`,[username,type])
         console.log(result)
         if(rows==[]){
             res.status(404).json({
