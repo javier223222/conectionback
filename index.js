@@ -6,6 +6,7 @@ if(process.env.NODE !== 'production'){
 const express=require("express")
 
 const cors =require("cors")
+const fileUpload =require("express-fileupload")
 
 const app=express()
 const PORT=process.env.PORT||80
@@ -14,8 +15,13 @@ app.use(cors())
 
 app.use(express.json())
 app.use(express.urlencoded({extended:false}))
+app.use(fileUpload({
+    useTempFiles:true,
+    tempFileDir:"./uploads"
+}))
 app.use('/api/v1',require('./src/routes/user.route'))
 app.use("/user/v1",require('./src/routes/userLogin.route'))
+app.use("/profile",require("./src/routes/UserProfile.route"))
 app.listen(PORT,()=>{
     console.log(`listen ${PORT}`)
 })

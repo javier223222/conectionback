@@ -12,9 +12,9 @@ const login=async(req,res)=>{
             message:"Usuario no encotrado"
            })
         }
-        const {username,email,password,status}=rows[0]
+        const {username,mail,password,status}=rows[0]
         console.log(username+status)
-        const token=await getToken({username,email})
+        const token=await getToken({username,mail})
         console.log(token)
         bcrypt.compare(passworduser, password, (err, result)=> {
             if(err) throw err;
