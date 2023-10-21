@@ -5,7 +5,7 @@ router.post('/user',
 [],
 userController.createNweUser)
 
-router.post('/user/:token',
+router.get('/user/:token',
 [],
 userController.confirmUser)
 
