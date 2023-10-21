@@ -47,11 +47,53 @@ const addimageprofile=async(req,res)=>{
         message:"No se pudo agregar la imagen",
         error:e
     })
+    const {username,email}=data.data
+    const [rows,field]=await pool.execute("select * from user where username=?",[username])
+    if(rows==[]){
+        res.status(404).json({
+            success:false,
+            message:"El usuario no existe"
+        })
+    }
+
 }
+
+
+}
+
+const getprofileImageb=async(req,res)=>{
+
 
     
+    const {username}=req.query
+    if(username==null){
+        res.status(404).json({
+            success:false,
+            message:"Erro al obtener el usuario"
+        })
+    }
+    const [rows,field]=await pool.execute(`select usi.dateofimage,i.urlimage from usersimages usi 
+    inner join image i on usi.idimage=i.idimage and usi.username=?  and usi.typeofimage=?
+    ORDER BY usi.dateofimage desc limit 1`,[username,'perfilimage'])
+    console.log(rows)
+    if(rows==[]){
+        res.status(404).json({
+            success:false,
+            message:"El usuario no tiene una imagen"
+        })
+    }
+    res.status(200).json({
+        success:true,
+        message:"imagen obtenida correctamente",
+        urlprofile:rows[0].urlimage,
+        dateofimage:rows[0].dateofimage
+    })
+
+ 
 }
 
+   
 module.exports={
-    addimageprofile
+    addimageprofile,
+    getprofileImageb
 }
