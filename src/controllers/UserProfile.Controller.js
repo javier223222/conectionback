@@ -62,7 +62,10 @@ const addimageprofile=async(req,res)=>{
 }
 
 const getprofileImageb=async(req,res)=>{
+   
+    try{
 
+  
 
     const data=await getTokenData(req.headers.authorization)
     const {username}=req.query
@@ -126,10 +129,21 @@ const getprofileImageb=async(req,res)=>{
         })
 
     }
-   
+    
+console.log("dd")
+}catch(e){
+    res.status(500).json({
+        success:false,
+        message:"Erro al recibir imagenes",
+        error:e
+    })
+  
+}
 
  
 }
+
+
 
    
 module.exports={
