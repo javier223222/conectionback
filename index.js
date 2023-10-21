@@ -1,15 +1,28 @@
+if(process.env.NODE !== 'production'){
+    require("dotenv").config()
+} 
+
+
 const express=require("express")
-const v1UserRouter=require("./src/v1/routes/userRoutes")
 
-const cors=require("cors")
+const cors =require("cors")
+const fileUpload =require("express-fileupload")
+
 const app=express()
-
 const PORT=process.env.PORT||80
-app.use(cors)
-app.use(express.json())
-app.use("/api/v1",v1UserRouter)
-app.listen(PORT,()=>{
-    console.log("Hola amigos")
-})
 
+app.use(cors())
+
+app.use(express.json())
+app.use(express.urlencoded({extended:false}))
+app.use(fileUpload({
+    useTempFiles:true,
+    tempFileDir:"./uploads"
+}))
+app.use('/api/v1',require('./src/routes/user.route'))
+app.use("/user/v1",require('./src/routes/userLogin.route'))
+app.use("/profile",require("./src/routes/UserProfile.route"))
+app.listen(PORT,()=>{
+    console.log(`listen ${PORT}`)
+})
 
