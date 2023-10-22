@@ -306,11 +306,164 @@ const getdescription=async(req,res)=>{
      })
     }
 }
+const getinteresofselect=async(req,res)=>{
+    try{
+        console.log(req.headers)
+     
+       const data=await getTokenData(req.headers.authorization)
+       console.log(data)
+       if(data==null){
+           res.status(404).json({
+               success:false,
+               message:"Erro al obtner el token"
+           })
+       }
+       const {username,email, namemajor}=data.data
+       const [rows,field]=await pool.execute("select * from user where username=?",[username])
+       if(rows==[]){
+           res.status(404).json({
+               success:false,
+               message:"El usuario no existe"
+           })
+       }
+
+       const [result]=await pool.query(`select i.naemofinteresorexpert from interests i inner join majorofuniversity 
+       majo on i.idmajoruniver=majo.idmajoruniver and majo.namemajor=?
+       `,[namemajor])
+      res.status(200).json({
+        success:true,
+        message:"interes o experto obtenidos correctamente",
+        result
+      })
+    
+    }catch(e){
+        res.status(500).json({
+            success:false,
+            message:"Error al traer intereses"
+        })
+    }
+}
+
+const addinterestOrExpert=async(req,res)=>{
+    try{
+        const {nameofelemt,interesorexpert}=req.body
+       const data=await getTokenData(req.headers.authorization)
+       console.log(data)
+       if(data==null){
+           res.status(404).json({
+               success:false,
+               message:"Erro al obtner el token"
+           })
+       }
+       const {username,email, namemajor}=data.data
+       const [rows,field]=await pool.execute("select * from user where username=?",[username])
+       
+       if(rows==[]){
+           res.status(404).json({
+               success:false,
+               message:"El usuario no existe"
+           })
+       }
+       const [result]=await pool.query(`select idinterests 
+                             from interests where naemofinteresorexpert=?`,[nameofelemt])
+       if(result==[]){
+        res.status(404).json({
+            success:false,
+            message:"El interes no existe"
+        })
+       }
+       const {idinterests}=result[0]
+       await pool.execute("insert into interestorexper(idinterests,username,expertoorinterest) values (?,?,?)",[idinterests,username,interesorexpert])
+       return res.status(200).json({
+        success:true,
+        message:"Interes o expero agregado correctamente"
+       })
+       
+    }catch(e){
+        res.status(500).json({
+            success:false,
+            message:"Error al agregar interes o experto"
+        })
+    }                  
+
+  
+}
+const getinteresorexpertofuser=async(req,res)=>{
+    try{
+        const data=await getTokenData(req.headers.authorization)
+        const {username}=req.query
+        const {expertOr}=req.body
+        if(username){
+            const [rows,field]=await pool.execute("select * from user where username=?",[username])
+            if(rows==[]){
+                res.status(404).json({
+                    success:false,
+                    message:"El usuario no existe"
+                })
+    
+            }
+           const [result]=await pool.query(`SELECT naemofinteresorexpert 
+           from interestorexper ie inner join 
+           interests i on ie.idinterests=i.idinterests and ie.username=? and ie.expertoorinterest=?`,[username,expertOr])
+           console.log(result)
+           res.status(200).json({
+            success:true,
+            message:expertOr==1?"se obtuvieron correctamente los experto":"se obtuvieron correctamente los intereses",
+            result
+        })
+
+        }else if(data!=null){
+            const data=await getTokenData(req.headers.authorization)
+            console.log(data)
+            if(data==null){
+                res.status(404).json({
+                    success:false,
+                    message:"Erro al obtner el token"
+                })
+            }
+            const {username,email}=data.data
+            const [rows,field]=await pool.execute("select * from user where username=?",[username])
+            if(rows==[]){
+                res.status(404).json({
+                    success:false,
+                    message:"El usuario no existe"
+                })
+    
+            }
+            const [result]=await pool.query(`SELECT naemofinteresorexpert 
+            from interestorexper ie inner join 
+            interests i on ie.idinterests=i.idinterests and ie.username=? and ie.expertoorinterest=?`,[username,expertOr])
+            console.log(result)
+            res.status(200).json({
+                success:true,
+                message:expertOr==1?"se obtuvieron correctamente los experto":"se obtuvieron correctamente los intereses",
+                result
+            })
+
+          
+
+        }else{
+            res.status(401).json({
+                success:false,
+                description:"No se enviaron ningun datos"
+            })
+        }
+
+    }catch(e){
+     res.status(500).json({
+        success:false,
+        message:"Erro al obtener la los intereses o el experto del usuario"
+     })
+    }
+}
    
 module.exports={
     addimageprofile,
     getprofileImageb,
     adddescription,
     updatedescription,
-    getdescription
+    getdescription,
+    getinteresofselect,
+    addinterestOrExpert,
+    getinteresorexpertofuser
 }
