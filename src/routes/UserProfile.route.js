@@ -11,4 +11,6 @@ route.get("/profilegetinteresofexpert/expertofus",[],UserProfile.getinteresorexp
 route.post("/hobbie",[],UserProfile.addhobbie)
 route.get("/hobbie",[],UserProfile.gethobbies)
 route.get("/getimagesprofile",[],UserProfile.getallimagesprofile)
+route.get("/allfriendsprofile",[],UserProfile.getallfriendprofile)
+
 module.exports=route
