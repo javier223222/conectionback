@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 const fs=require("fs-extra");
 const { uploadImage } = require("../config/cloundinary.config");
 const { query } = require("../services/user.services");
+const User = require("../models/User.model");
 const addimageprofile=async(req,res)=>{
   try{
      console.log(req.headers)
@@ -567,6 +568,77 @@ const gethobbies=async(req,res)=>{
      })
     }
 }
+const getallimagesprofile=async(req,res)=>{
+    // try{
+        const data=await getTokenData(req.headers.authorization)
+        const {username}=req.query
+        const {page,limit}=req.query
+        const skip=(page-1) * limit
+        let response={
+            message:"se obtuvieron correctamente las imagenes",
+           
+           }
+        if(username){
+            const usert=new User(username,null,null)
+            const rows=await usert.checkexist(username)
+            if(rows==[]){
+               return res.status(404).json({
+                    success:false,
+                    message:"El usuario no existe"
+                })
+    
+            }
+           
+           
+            const resultc=await usert.getallimages(page,limit,username,skip)
+            response={
+               ...response,
+               ...resultc
+            }
+            console.log(rows)
+           return res.status(200).json(response)
+           
+        
+        }else if(data!=null){
+            const data=await getTokenData(req.headers.authorization)
+            console.log(data)
+            if(data==null){
+              return  res.status(404).json({
+                    success:false,
+                    message:"Erro al obtner el token"
+                })
+            }
+            const {username,email,namemajor}=data.data
+            const user=new User(username,email,namemajor)
+            const result=await User.checkexist(user.username)
+
+            if(result==[]){
+                return  res.status(404).json({
+                    success:false,
+                    message:"El usuario no existe"
+                })
+            }
+            const resultc=await User.getallimages(page,limit,username,skip)
+            console.log(skip)
+            console.log(resultc)
+            response={
+               ...response,
+               ...resultc
+            }
+           return res.status(200).json(response)
+        }
+    // }catch(e){
+    //     return res.status(500).json({
+    //         success:false,
+    //         message:"Erro al obtner las imagenes del usuario"
+    //      })
+    // }
+    
+}
+
+
+
+
    
 module.exports={
     addimageprofile,
@@ -578,5 +650,6 @@ module.exports={
     addinterestOrExpert,
     getinteresorexpertofuser,
     addhobbie,
-    gethobbies
+    gethobbies,
+    getallimagesprofile
 }
