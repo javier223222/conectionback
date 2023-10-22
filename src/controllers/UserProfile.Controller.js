@@ -569,7 +569,7 @@ const gethobbies=async(req,res)=>{
     }
 }
 const getallimagesprofile=async(req,res)=>{
-    // try{
+    try{
         const data=await getTokenData(req.headers.authorization)
         const {username}=req.query
         const {page,limit}=req.query
@@ -627,13 +627,73 @@ const getallimagesprofile=async(req,res)=>{
             }
            return res.status(200).json(response)
         }
-    // }catch(e){
-    //     return res.status(500).json({
-    //         success:false,
-    //         message:"Erro al obtner las imagenes del usuario"
-    //      })
-    // }
+    }catch(e){
+        return res.status(500).json({
+            success:false,
+            message:"Erro al obtner las imagenes del usuario"
+         })
+    }
     
+}
+
+const getallfriendprofile=async(req,res)=>{
+    const data=await getTokenData(req.headers.authorization)
+    const {username}=req.query
+    const {page,limit}=req.query
+    const skip=(page-1) * limit
+    let response={
+        message:"se obtuvieron correctamente los amigos",
+       
+       }
+    if(username){
+        const usert=new User(username,null,null)
+        const rows=await usert.checkexist(username)
+        if(rows==[]){
+           return res.status(404).json({
+                success:false,
+                message:"El usuario no existe"
+            })
+
+        }
+        const result=await usert.getallfriend(page,limit,username,skip)
+        response={
+          ...response,
+          ...result
+        }
+       
+        
+       return res.status(200).json(response)
+       
+    
+    }else if(data!=null){
+        const data=await getTokenData(req.headers.authorization)
+        console.log(data)
+        if(data==null){
+          return  res.status(404).json({
+                success:false,
+                message:"Erro al obtner el token"
+            })
+        }
+        const {username,email,namemajor}=data.data
+        const user=new User(username,email,namemajor)
+        const result=await user.checkexist(username)
+
+        if(result==[]){
+            return  res.status(404).json({
+                success:false,
+                message:"El usuario no existe"
+            })
+        }
+        const friends=await user.getallfriend(page,limit,username,skip)
+        
+        response={
+            ...response,
+            friends
+        }
+        
+       return res.status(200).json(response)
+    }
+
 }
 
 
@@ -651,5 +711,6 @@ module.exports={
     getinteresorexpertofuser,
     addhobbie,
     gethobbies,
-    getallimagesprofile
+    getallimagesprofile,
+    getallfriendprofile
 }

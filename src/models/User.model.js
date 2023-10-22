@@ -8,11 +8,11 @@ class User{
         this.major=major
     }
     
-    static getImage=async()=>{
+     getImage=async()=>{
          
     }
 
-     checkexist= async(username) =>{
+     checkexist = async(username) =>{
         const [result]= await pool.execute("select * from user where username=?",[username])
         return result
     }
@@ -43,6 +43,32 @@ class User{
         }
       
     }
+    getallfriend=async(page,limit,username,skip)=>{
+        if(page &&limit){
+            const [resultid]=await pool.execute(`SELECT count(fri.idfriend) ascountfriendas FROM
+             friendoffriend fri where 
+             fri.friendone=? or fri.friendtwoo=?`,[username,username])
+           const {ascountfriendas}=resultid[0]
+           const totalpages=Math.ceil(ascountfriendas/limit)
+           const [result]=await pool.execute(`SELECT * FROM friendoffriend 
+           fri where fri.friendone=? or fri.friendtwoo=? order by fri.idfriend desc limit ${limit} offset ${skip}`,[username,username])
+            return {
+                
+                result,
+                totalpages
+            }
+        }else{
+            const [result]=await pool.execute(`SELECT * FROM friendoffriend 
+            fri where fri.friendone=? or fri.friendtwoo=?  `,[username,username])
+             return {
+                 
+                 result,
+                 
+             }   
+        }
+    }
+
+
 
     
 }
