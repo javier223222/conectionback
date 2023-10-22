@@ -48,14 +48,7 @@ const addimageprofile=async(req,res)=>{
         message:"No se pudo agregar la imagen",
         error:e
     })
-    const {username,email}=data.data
-    const [rows,field]=await pool.execute("select * from user where username=?",[username])
-    if(rows==[]){
-        res.status(404).json({
-            success:false,
-            message:"El usuario no existe"
-        })
-    }
+    
 
 }
 
@@ -144,11 +137,180 @@ console.log("dd")
 
  
 }
+const adddescription=async(req,res)=>{
+    try{
+        console.log(req.headers)
+        const {description}=req.body
+       const data=await getTokenData(req.headers.authorization)
+       console.log(data)
+       if(data==null){
+           res.status(404).json({
+               success:false,
+               message:"Erro al obtner el token"
+           })
+       }
+       const {username,email}=data.data
+       const [rows,field]=await pool.execute("select * from user where username=?",[username])
+       if(rows==[]){
+           res.status(404).json({
+               success:false,
+               message:"El usuario no existe"
+           })
+       }
+     const [result]=await pool.query("select * from perfildescription where username=?",[username])
+     console.log(result)
+     if(result!=[]){
+        res.status(404).json({
+            success:false,
+            message:"El usuario ya tiene descripcion",
+            
+        })
+    //   await  pool.execute(`UPDATE perfildescription 
+    //    set description=? where username=? `,[description,username])
+    //    res.status(200).json({
+    //     success:true,
+    //     message:"La descripcion del usuario fue actualizada correctamente"
+    //    })
+     }else{
+
+        await pool.execute(`insert into perfildescription(username,description)
+                          values(?,?)  `,[username,description])
+        res.status(200).json({
+            success:true,
+            message:"La descripcion del usuario fue agregado correctamente"
+           })
+     }
+    }catch(e){
+        res.status(500).json({
+            success:false,
+            message:"No se pudo agregar la descripcion",
+            error:e
+        })
+    }
 
 
+}
 
+const updatedescription=async(req,res)=>{
+    try{
+        console.log(req.headers)
+        const {description}=req.body
+       const data=await getTokenData(req.headers.authorization)
+       console.log(data)
+       if(data==null){
+           res.status(404).json({
+               success:false,
+               message:"Erro al obtner el token"
+           })
+       }
+       const {username,email}=data.data
+       const [rows,field]=await pool.execute("select * from user where username=?",[username])
+       if(rows==[]){
+           res.status(404).json({
+               success:false,
+               message:"El usuario no existe"
+           })
+       }
+     const [result]=await pool.query("select * from perfildescription where username=?",[username])
+     console.log(result)
+     if(result==[]){
+        res.status(404).json({
+            success:false,
+            message:"El usuario no tiene descripcion",
+            
+        })
+  
+     }else{
+
+        await  pool.execute(`UPDATE perfildescription 
+        set description=? where username=? `,[description,username])
+        res.status(200).json({
+         success:true,
+         message:"La descripcion del usuario fue actualizada correctamente"
+        })
+     }
+    }catch(e){
+        res.status(500).json({
+            success:false,
+            message:"No se pudo actualizar la descripcion",
+            error:e
+        })
+    }
+
+}
+
+const getdescription=async(req,res)=>{
+    try{
+        const data=await getTokenData(req.headers.authorization)
+        const {username}=req.query
+        if(username){
+            const [rows,field]=await pool.execute("select * from user where username=?",[username])
+            if(rows==[]){
+                res.status(404).json({
+                    success:false,
+                    message:"El usuario no existe"
+                })
+    
+            }
+            const [result]=await pool.execute(`
+             select description 
+             from perfildescription
+             where username=?
+            `,[username])
+            const {description}=result[0]
+            res.status(200).json({
+                success:true,
+                description
+            })
+        }else if(data!=null){
+            const data=await getTokenData(req.headers.authorization)
+            console.log(data)
+            if(data==null){
+                res.status(404).json({
+                    success:false,
+                    message:"Erro al obtner el token"
+                })
+            }
+            const {username,email}=data.data
+            const [rows,field]=await pool.execute("select * from user where username=?",[username])
+            if(rows==[]){
+                res.status(404).json({
+                    success:false,
+                    message:"El usuario no existe"
+                })
+    
+            }
+            const [result]=await pool.execute(`
+             select description 
+             from perfildescription
+             where username=?
+            `,[username])
+            const {description}=result[0]
+            res.status(200).json({
+                success:true,
+                description
+            })
+
+
+        }else{
+            res.status(401).json({
+                success:false,
+                description:"No se enviaron ningun datos"
+            })
+        }
+
+    }catch(e){
+     res.status(500).json({
+        success:false,
+        message:"Erro al obtener la descripcion"
+     })
+    }
+}
    
 module.exports={
     addimageprofile,
-    getprofileImageb
+    getprofileImageb,
+    adddescription,
+    updatedescription,
+    getdescription
 }
