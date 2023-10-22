@@ -8,4 +8,6 @@ route.get("/profiledescription",[],UserProfile.getdescription)
 route.get("/profilegetinteresofexpert",[],UserProfile.getinteresofselect)
 route.post("/profilegetinteresofexpert",[],UserProfile.addinterestOrExpert)
 route.get("/profilegetinteresofexpert/expertofus",[],UserProfile.getinteresorexpertofuser)
+route.post("/hobbie",[],UserProfile.addhobbie)
+route.get("/hobbie",[],UserProfile.gethobbies)
 module.exports=route
