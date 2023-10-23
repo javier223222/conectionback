@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "api rest about university social media ",
   "main": "index.js",
-  "engines": {
-    "node": "16"
-},
+ 
   "scripts": {
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
