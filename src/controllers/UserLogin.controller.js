@@ -12,9 +12,23 @@ const login=async(req,res)=>{
             message:"Usuario no encotrado"
            })
         }
+       
         const {username,mail,password,status}=rows[0]
+        const [result]=await pool.query(`select namemajor from majorofuniversity ma 
+                                 inner join dataaboutmajor dama on
+                                  ma.idmajoruniver=dama.idmajoruniver and username=?`,[username])
+        console.log(result)
         console.log(username+status)
-        const token=await getToken({username,mail})
+        let token=null
+        if(result!=[]){
+            const {namemajor}=result[0]
+            token=await getToken({username,mail,namemajor})
+        }else{
+            token=await getToken({username,mail})
+        }
+     
+    
+       
         console.log(token)
         bcrypt.compare(passworduser, password, (err, result)=> {
             if(err) throw err;
