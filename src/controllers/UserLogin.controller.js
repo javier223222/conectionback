@@ -1,9 +1,11 @@
+const { serialize } = require("cookie");
 const { pool } = require("../config/db.config")
 const { getToken } = require("../config/jwt.config")
 const bcrypt = require('bcryptjs');
 const login=async(req,res)=>{
     try{
         const {usernameoremail,passworduser}=req.body
+        console.log(req.cookies)
         const [rows,field]=await pool.execute('SELECT * FROM user where username=? or mail=?',[usernameoremail,usernameoremail])
         console.log(rows[0])
         if(!rows){
@@ -20,11 +22,27 @@ const login=async(req,res)=>{
         console.log(result)
         console.log(username+status)
         let token=null
+        let serialized=null
         if(result!=[]){
             const {namemajor}=result[0]
+            
             token=await getToken({username,mail,namemajor})
+            serialized= serialize("tokenUser",token,{
+                httpOnly:true,
+                secure:process.env.NODE_ENV =='production',
+                sameSite:"lax",
+                maxAge:60,
+                path:'/'
+            })
         }else{
             token=await getToken({username,mail})
+            serialized= serialize("tokenUser",token,{
+                httpOnly:true,
+                secure:process.env.NODE_ENV =='production',
+                sameSite:"lax",
+                maxAge:60,
+                path:'/'
+            })
         }
      
     
@@ -33,13 +51,15 @@ const login=async(req,res)=>{
         bcrypt.compare(passworduser, password, (err, result)=> {
             if(err) throw err;
            if(result && status !="UNIVERIFIED"  ){
-               return res.json({
+            
+            res.setHeader('Set-Cookie',serialized)
+               return res.status(200).json({
                    success:true,
-                   resultt:{
-                       result:result,
+                //    resultt:{
+                //        result:result,
                        
-                       token:token
-                   }
+                //        token:token
+                //    }
                 })
            
            }else{
@@ -56,7 +76,7 @@ const login=async(req,res)=>{
         res.status(500).json({
             success:false,
             message:"Error al iniciar sesion",
-            error:e
+            error:e.message
           })
     }
     
