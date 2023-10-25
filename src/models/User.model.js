@@ -12,9 +12,17 @@ class User{
          
     }
 
+    addimage=async(username,code,type)=>{
+        const result=await pool.execute("insert into usersimages(username,idimage,typeofimage) values(?,?,?)",[username,code,type])
+        return result
+    }
      checkexist = async(username) =>{
         const [result]= await pool.execute("select * from user where username=?",[username])
         return result
+    }
+    getallpublications=async(username)=>{
+        const [result]=await pool.execute("select idppublicacion from  publicacion p where username=? and categoriapublicacion!=?",[username,"notas"])
+
     }
      getallimages=async(page,limit,username,skip)=>{
         

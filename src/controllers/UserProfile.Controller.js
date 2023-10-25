@@ -6,12 +6,13 @@ const fs=require("fs-extra");
 const { uploadImage } = require("../config/cloundinary.config");
 const { query } = require("../services/user.services");
 const User = require("../models/User.model");
+
+
 const addimageprofile=async(req,res)=>{
   try{
-     console.log(req.headers)
+     
      const {type}=req.body
-    const data=await getTokenData(req.headers.authorization)
-    console.log(data)
+    const data=await getTokenData(req.cookies.tokenUser)
     if(data==null){
        return res.status(404).json({
             success:false,
@@ -19,7 +20,8 @@ const addimageprofile=async(req,res)=>{
         })
     }
     const {username,email}=data.data
-    const [rows,field]=await pool.execute("select * from user where username=?",[username])
+    const usert=new User(username,null,null)
+    const rows=await usert.checkexist(username)
     if(rows==[]){
       return  res.status(404).json({
             success:false,
@@ -31,7 +33,7 @@ const addimageprofile=async(req,res)=>{
         const imageur=await uploadImage(req.files.imagenprofile.tempFilePath)
         console.log(imageur)
         const insert=await pool.execute("insert into image values(?,?,?)",[code,imageur.secure_url,imageur.public_id])
-        const insertima=await pool.execute("insert into usersimages(username,idimage,typeofimage) values(?,?,?)",[username,code,type])
+        const insertima=usert.addimage(username,code,type)
         await fs.unlink(req.files.imagenprofile.tempFilePath)
         return res.status(200).json({
             success:true,
@@ -63,7 +65,7 @@ const getprofileImageb=async(req,res)=>{
 
   
 
-    const data=await getTokenData(req.headers.authorization)
+    const data=await getTokenData(req.cookies.tokenUser)
     const {username}=req.query
     const {type}=req.body
     // if(username==null){
@@ -90,7 +92,7 @@ const getprofileImageb=async(req,res)=>{
             dateofimage:rows[0].dateofimage
         })
     }else if(data){
-        const data=await getTokenData(req.headers.authorization)
+        const data=await getTokenData(req.cookies.tokenUser)
         console.log(data)
         if(data==null){
            return res.status(404).json({
@@ -99,7 +101,9 @@ const getprofileImageb=async(req,res)=>{
             })
         }
         const {username,email}=data.data
-        const [rows,field]=await pool.execute("select * from user where username=?",[username])
+        const usert=new User(username,null,null)
+        const rows=await usert.checkexist(username)
+        
         if(rows==[]){
            return res.status(404).json({
                 success:false,
@@ -143,7 +147,7 @@ const adddescription=async(req,res)=>{
     try{
         console.log(req.headers)
         const {description}=req.body
-       const data=await getTokenData(req.headers.authorization)
+       const data=await getTokenData(req.cookies.tokenUser)
        console.log(data)
        if(data==null){
           return res.status(404).json({
@@ -152,7 +156,7 @@ const adddescription=async(req,res)=>{
            })
        }
        const {username,email}=data.data
-       const [rows,field]=await pool.execute("select * from user where username=?",[username])
+       const [rows,field]=await pool.execute("select * from user where username=? and delete!=1",[username])
        if(rows==[]){
           return res.status(404).json({
                success:false,
@@ -197,7 +201,7 @@ const updatedescription=async(req,res)=>{
     try{
         console.log(req.headers)
         const {description}=req.body
-       const data=await getTokenData(req.headers.authorization)
+       const data=await getTokenData(req.cookies.tokenUser)
        console.log(data)
        if(data==null){
           return res.status(404).json({
@@ -206,7 +210,7 @@ const updatedescription=async(req,res)=>{
            })
        }
        const {username,email}=data.data
-       const [rows,field]=await pool.execute("select * from user where username=?",[username])
+       const [rows,field]=await pool.execute("select * from user where username=? and delete!=1",[username])
        if(rows==[]){
          return  res.status(404).json({
                success:false,
@@ -243,10 +247,10 @@ const updatedescription=async(req,res)=>{
 
 const getdescription=async(req,res)=>{
     try{
-        const data=await getTokenData(req.headers.authorization)
+        const data=await getTokenData(req.cookies.tokenUser)
         const {username}=req.query
         if(username){
-            const [rows,field]=await pool.execute("select * from user where username=?",[username])
+            const [rows,field]=await pool.execute("select * from user where username=? and delete!=1",[username])
             if(rows==[]){
               return  res.status(404).json({
                     success:false,
@@ -274,7 +278,7 @@ const getdescription=async(req,res)=>{
                 })
             }
             const {username,email}=data.data
-            const [rows,field]=await pool.execute("select * from user where username=?",[username])
+            const [rows,field]=await pool.execute("select * from user where username=? and delete!=1",[username])
             if(rows==[]){
               return  res.status(404).json({
                     success:false,
@@ -312,7 +316,7 @@ const getinteresofselect=async(req,res)=>{
     try{
         console.log(req.headers)
      
-       const data=await getTokenData(req.headers.authorization)
+       const data=await getTokenData(req.cookies.tokenUser)
        console.log(data)
        if(data==null){
           return res.status(404).json({
@@ -321,7 +325,7 @@ const getinteresofselect=async(req,res)=>{
            })
        }
        const {username,email, namemajor}=data.data
-       const [rows,field]=await pool.execute("select * from user where username=?",[username])
+       const [rows,field]=await pool.execute("select * from user where username=? and delete!=1",[username])
        if(rows==[]){
           return res.status(404).json({
                success:false,
@@ -349,7 +353,7 @@ const getinteresofselect=async(req,res)=>{
 const addinterestOrExpert=async(req,res)=>{
     try{
         const {nameofelemt,interesorexpert}=req.body
-       const data=await getTokenData(req.headers.authorization)
+       const data=await getTokenData(req.cookies.tokenUser)
        console.log(data)
        if(data==null){
           return res.status(404).json({
@@ -358,7 +362,7 @@ const addinterestOrExpert=async(req,res)=>{
            })
        }
        const {username,email, namemajor}=data.data
-       const [rows,field]=await pool.execute("select * from user where username=?",[username])
+       const [rows,field]=await pool.execute("select * from user where username=? and delete!=1",[username])
        
        if(rows==[]){
          return  res.status(404).json({
@@ -392,11 +396,11 @@ const addinterestOrExpert=async(req,res)=>{
 }
 const getinteresorexpertofuser=async(req,res)=>{
     try{
-        const data=await getTokenData(req.headers.authorization)
+        const data=await getTokenData(req.cookies.tokenUser)
         const {username}=req.query
         const {expertOr}=req.body
         if(username){
-            const [rows,field]=await pool.execute("select * from user where username=?",[username])
+            const [rows,field]=await pool.execute("select * from user where username=? and delete!=1",[username])
             if(rows==[]){
                return res.status(404).json({
                     success:false,
@@ -424,7 +428,7 @@ const getinteresorexpertofuser=async(req,res)=>{
                 })
             }
             const {username,email}=data.data
-            const [rows,field]=await pool.execute("select * from user where username=?",[username])
+            const [rows,field]=await pool.execute("select * from user where username=? and delete!=1",[username])
             if(rows==[]){
               return  res.status(404).json({
                     success:false,
@@ -462,7 +466,7 @@ const getinteresorexpertofuser=async(req,res)=>{
 const addhobbie=async(req,res)=>{
    try{
   
-    const data=await getTokenData(req.headers.authorization)
+    const data=await getTokenData(req.cookies.tokenUser)
     const {namehobbie}=req.body
     console.log(data)
     if(data==null){
@@ -472,7 +476,7 @@ const addhobbie=async(req,res)=>{
         })
     }
     const {username,email, namemajor}=data.data
-    const [rows,field]=await pool.execute("select * from user where username=?",[username])
+    const [rows,field]=await pool.execute("select * from user where username=? and delete!=1",[username])
     
     if(rows==[]){
        return res.status(404).json({
@@ -499,11 +503,11 @@ const addhobbie=async(req,res)=>{
 }
 const gethobbies=async(req,res)=>{
     try{
-        const data=await getTokenData(req.headers.authorization)
+        const data=await getTokenData(req.cookies.tokenUser)
         const {username}=req.query
         
         if(username){
-            const rows=await query("select * from user where username=?",[username])
+            const rows=await query("select * from user where username=? and delete!=1",[username])
             if(rows==[]){
                return res.status(404).json({
                     success:false,
@@ -533,7 +537,7 @@ const gethobbies=async(req,res)=>{
                 })
             }
             const {username,email}=data.data
-            const rows=await query("select * from user where username=?",[username])
+            const rows=await query("select * from user where username=? and delete!=1",[username])
             console.log(rows)
           
             if(rows==[]){
@@ -570,7 +574,7 @@ const gethobbies=async(req,res)=>{
 }
 const getallimagesprofile=async(req,res)=>{
     try{
-        const data=await getTokenData(req.headers.authorization)
+        const data=await getTokenData(req.cookies.tokenUser)
         const {username}=req.query
         const {page,limit}=req.query
         const skip=(page-1) * limit
@@ -637,7 +641,7 @@ const getallimagesprofile=async(req,res)=>{
 }
 
 const getallfriendprofile=async(req,res)=>{
-    const data=await getTokenData(req.headers.authorization)
+    const data=await getTokenData(req.cookies.tokenUser)
     const {username}=req.query
     const {page,limit}=req.query
     const skip=(page-1) * limit
@@ -695,6 +699,72 @@ const getallfriendprofile=async(req,res)=>{
     }
 
 }
+const getpublications=async(req,res)=>{
+    const data=await getTokenData(req.cookies.tokenUser)
+    const {username}=req.query
+    const {page,limit}=req.query
+    const skip=(page-1) * limit
+    let response={
+        message:"se obtuvieron correctamente los amigos",
+       
+       }
+   try{
+    if(username){
+        const usert=new User(username,null,null)
+        const rows=await usert.checkexist(username)
+        if(rows==[]){
+           return res.status(404).json({
+                success:false,
+                message:"El usuario no existe"
+            })
+
+        }
+        const result=await usert.getallfriend(page,limit,username,skip)
+        response={
+          ...response,
+          ...result
+        }
+       
+        
+     
+       
+    
+    }else if(data!=null){
+        const data=await getTokenData(req.headers.authorization)
+        console.log(data)
+        if(data==null){
+          return  res.status(404).json({
+                success:false,
+                message:"Erro al obtner el token"
+            })
+        }
+        const {username,email,namemajor}=data.data
+        const user=new User(username,email,namemajor)
+        const result=await user.checkexist(username)
+
+        if(result==[]){
+            return  res.status(404).json({
+                success:false,
+                message:"El usuario no existe"
+            })
+        }
+        const friends=await user.getallfriend(page,limit,username,skip)
+        
+        response={
+            ...response,
+            friends
+        }
+    }
+    return res.status(200).json(response)
+   }catch(e){
+    return res.status(500).json({
+        success:false,
+        e:e.message,
+        message:"Erro al obtener la los intereses o el experto del usuario"
+     })
+   }
+}
+
 
 
 
@@ -712,5 +782,6 @@ module.exports={
     addhobbie,
     gethobbies,
     getallimagesprofile,
-    getallfriendprofile
+    getallfriendprofile,
+    getpublications
 }
