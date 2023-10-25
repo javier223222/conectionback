@@ -15,6 +15,13 @@ const createNweUser=async (req,res)=>{
         let encryppaswwor=password
         const code=uuidv4()
        
+         const [rows]=await pool.execute("select * from user where  username=? and delete=1",[username])
+         if(rows!=[]){
+            res.status(400).json({
+                message:"Su cuenta fue eliminada puede restaurar"
+            })
+         }
+
      
 
       const insert=  await pool.query(`INSERT INTO user(username,name,apellidop,apellidom,birthday,password,gender,mail,code) VALUES (?,?,?,?,?,?,?,?,?)`,
@@ -41,7 +48,7 @@ const createNweUser=async (req,res)=>{
     }catch(e){
        return res.status(500).json({
         success:false,
-        message:"Error al agregar usuario",
+        message:"El correo o la contrasenia ya existe",
         error:e
        })
     }
@@ -56,26 +63,15 @@ const confirmUser=async(req,res)=>{
      const data=await getTokenData(token)
      console.log(data)
      if(data==null){
-        return res.status(404).json({
-            success: false,
-            msg: 'Error al obtener data'
-        });
+      return res.redirect(process.env.ERRORPAGE)
      }
      const {username,correo,code}= data.data
  
    await  pool.query("UPDATE user SET status=? where username=?",['VERIFIED',username])
    //todo for next js template
-    return res.status(200).json({
-        success:true,
-        message:"Usuario verificado correctamente",
-        
-    })
+    return res.redirect(process.env.LOGINPAGE)
    }catch(e){
-    return res.status(500).json({
-        success:false,
-        message:"Error al confirmar usuario",
-        error:e
-       })
+    return res.redirect(process.env.ERRORPAGE)
    }
 
 }

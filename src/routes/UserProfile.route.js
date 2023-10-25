@@ -12,5 +12,6 @@ route.post("/hobbie",[],UserProfile.addhobbie)
 route.get("/hobbie",[],UserProfile.gethobbies)
 route.get("/getimagesprofile",[],UserProfile.getallimagesprofile)
 route.get("/allfriendsprofile",[],UserProfile.getallfriendprofile)
+route.get("/getpublication",[],UserProfile.getpublications)
 
 module.exports=route
