@@ -31,7 +31,7 @@ const login=async(req,res)=>{
                 httpOnly:true,
                 secure:process.env.NODE_ENV =='production',
                 sameSite:"none",
-                maxAge:60,
+                maxAge:60 * 60 * 24 * 7 ,
                 path:'/'
             })
         }else{
@@ -40,7 +40,7 @@ const login=async(req,res)=>{
                 httpOnly:true,
                 secure:process.env.NODE_ENV =='production',
                 sameSite:"none",
-                maxAge:60,
+                maxAge:60 * 60 * 24 * 7 ,
                 path:'/'
             })
         }
