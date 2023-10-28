@@ -13,6 +13,7 @@ const addimageprofile=async(req,res)=>{
      
      const {type}=req.body
     const data=await getTokenData(req.cookies.tokenUser)
+    console.log(req.cookies.tokenUser)
     if(data==null){
        return res.status(404).json({
             success:false,
