@@ -8,7 +8,7 @@ const login=async(req,res)=>{
         console.log(req.cookies)
         const [rows,field]=await pool.execute('SELECT * FROM user where username=? or mail=?',[usernameoremail,usernameoremail])
         console.log(rows[0])
-        if(!rows){
+        if(rows==undefined){
            return res.status(404).json({
             success:false,
             message:"Usuario no encotrado"
@@ -30,17 +30,17 @@ const login=async(req,res)=>{
             serialized= serialize("tokenUser",token,{
                 httpOnly:true,
                 secure:process.env.NODE_ENV =='production',
-                sameSite:"lax",
-                maxAge:60 * 60 * 24 * 7 ,
+                sameSite:process.env.NODE_ENV=='production'?"none":"lax",
+                maxAge:60 * 60 * 24 ,
                 path:'/'
             })
         }else{
             token=await getToken({username,mail})
             serialized= serialize("tokenUser",token,{
                 httpOnly:true,
-                secure:process.env.NODE_ENV =='production',
-                sameSite:"lax",
-                maxAge:60 * 60 * 24 * 7 ,
+                secure:process.env.NODE_ENV=='production'?"none":"lax",
+                sameSite:"none",
+                maxAge:60 * 60 * 24  ,
                 path:'/'
             })
         }
@@ -63,9 +63,9 @@ const login=async(req,res)=>{
                 })
            
            }else{
-               return res.json({
+               return res.status(200).json({
                    success:false,
-                   msg:"el usuario no esta verificado"
+                   msg:"el usuario no verificado"
                })
            }
        });
@@ -73,10 +73,10 @@ const login=async(req,res)=>{
     
 
     }catch(e){
-        res.status(500).json({
+        res.status(200).json({
             success:false,
-            message:"Error al iniciar sesion",
-            error:e.message
+            message:"nombre de usuario o correo o password invalidos",
+           
           })
     }
     
