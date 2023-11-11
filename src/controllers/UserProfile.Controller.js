@@ -1,46 +1,180 @@
-const { pool } = require("../config/db.config")
+
 const { getTokenData } = require("../config/jwt.config")
 const { v4: uuidv4 } = require('uuid');
 
 const fs=require("fs-extra");
 const { uploadImage } = require("../config/cloundinary.config");
-const { query } = require("../services/user.services");
+
 const User = require("../models/User.model");
 
+
+
+const updatename=async(req,res)=>{
+    try{
+        const user=new User()
+      const data=await getTokenData(req.headers.authorization)
+      const {iduser}=data.data
+      const {name}=req.body
+        await user.updateName(name,iduser)
+        return res.status(200).json({
+            success:true,
+            message:"Usuario actualizado correctamente"
+        })
+    }catch(e){
+        return res.status(500).json({
+            success:false,
+            message:"Error al actualizar el usuario"
+
+        })
+
+    }
+}
+const getinformation=async(req,res)=>{
+    try{
+        const data=await getTokenData(req.headers.authorization)
+        const {username}=req.query
+        const user=new User()
+        if(username){
+            const result=await user.checkwithusername(username)
+            const {iduser}=result[0]
+            const userinfo=await user.getnameProfileannombre(iduser)
+            const usermajor=await user.getmajor(iduser)
+            
+            return res.status(200).json({
+                success:true,
+                message:"Informacion obtenida correctamente",
+                ...userinfo,
+                ...usermajor
+            })
+        }
+        const {iduser}=data.data
+        const userinfo=await user.getnameProfileannombre(iduser)
+        const usermajor=await user.getmajor(iduser)
+       
+        return res.status(200).json({
+            success:true,
+            message:"Informacion obtenida correctamente",
+            ...userinfo,
+            ...usermajor
+        
+        })
+    }catch(e){
+     return res.status(500).json({
+        success:false,
+        message:"error al obtener la informacion",
+        error:e.message
+    
+     })
+    }
+}
+const getInformacionById=async(req,res)=>{
+    try{
+      const {iduser}=req.query
+      const user=new User()
+      const userinfo=await user.getnameProfileannombre(iduser)
+      const usermajor=await user.getmajor(iduser)
+        return res.status(200).json({
+            success:true,
+            message:"Informacion obtenida correctamente",
+            ...userinfo,
+            ...usermajor
+        
+        })
+    }catch(e){
+        return res.status(500).json({
+            success:false,
+            message:"Error al obtener los datos del usuario",
+        })
+    }
+}
+
+const updateapellidop=async(req,res)=>{
+    try{
+     const user=new User()
+     const data=await getTokenData(req.headers.authorization)
+     const {iduser}=data.data
+     const {apeliidop}=req.body
+     await user.updateApellidoP(apeliidop,iduser)
+     return res.status(200).json({
+        success:true,
+        message:"Usuario actualizado correctamente"
+     })
+    }catch(e){
+        return res.status(500).json({
+            success:false,
+            message:"Error al actualizar el usuario",
+            error:e.message
+        })
+    }
+}
+const updataApellidoM=async(req,res)=>{
+    try{
+        const user=new User()
+        const data=await getTokenData(req.headers.authorization)
+        const {iduser}=data.data
+        const {apeliidom}=req.body
+        await user.updateApellidoM(apeliidom,iduser)
+        return res.status(200).json({
+            success:true,
+            message:"Usuario actualizado correctamente"
+        })
+
+    }catch(e){
+        return res.status(500).json({
+            success:false,
+            message:"Error al actualizar el usuario"
+        })
+    }
+}
+const deleteprofile= async (req,res)=>{
+    try{
+        const user=new User()
+        const data=await getTokenData(req.headers.authorization)
+        const {iduser}=data.data
+     
+        await user.deleteuserOrSave(1,iduser)
+       
+      return  res.status(200).json({
+            success:true,
+            message:"Cuenta eliminada correctamente"
+
+        })
+     
+    }catch(e){
+    return res.status(500).json({
+        success:false,
+        message:"Error al eliminar la cuenta",
+        error:e.message
+     })
+    }
+}
 
 const addimageprofile=async(req,res)=>{
   try{
      
      const {type}=req.body
-    const data=await getTokenData(req.cookies.tokenUser)
-    console.log(req.cookies.tokenUser)
-    if(data==null){
-       return res.status(404).json({
-            success:false,
-            message:"Erro al obtner el token"
-        })
-    }
-    const {username,email}=data.data
-    const usert=new User(username,null,null)
-    const rows=await usert.checkexist(username)
-    if(rows==[]){
-      return  res.status(404).json({
-            success:false,
-            message:"El usuario no existe"
-        })
-    }
-    const code=uuidv4()
+
+    const data=await getTokenData(req.headers.authorization)
+    
+    const {iduser}=data.data
+    const usert=new User()
+   
     if(req.files?.imagenprofile){
         const imageur=await uploadImage(req.files.imagenprofile.tempFilePath)
-        console.log(imageur)
-        const insert=await pool.execute("insert into image values(?,?,?)",[code,imageur.secure_url,imageur.public_id])
-        const insertima=usert.addimage(username,code,type)
+        
+        await usert.saveFile(imageur.secure_url,imageur.public_id)
+        const imageurl= await usert.getidfile(imageur.secure_url)
+        const {idfile}=imageurl[0]
+        
+        
+        await usert.addimage(idfile,iduser,type)
         await fs.unlink(req.files.imagenprofile.tempFilePath)
         return res.status(200).json({
             success:true,
             message:"Imagen agregada correctamente"
         })
     }
+
     return res.status(404).json({
         success:false,
         message:"No se agrego ninguna foto"
@@ -51,24 +185,24 @@ const addimageprofile=async(req,res)=>{
    return res.status(500).json({
         success:false,
         message:"No se pudo agregar la imagen",
-        error:e
+        error:e.message
     })
-    
-
 }
-
-
 }
 
 const getprofileImageb=async(req,res)=>{
    
     try{
 
-  
+    let respuesta={
+        success:true,
+        message:"imagen obtenida correctamente",
+    }
 
-    const data=await getTokenData(req.cookies.tokenUser)
-    const {username}=req.query
-    const {type}=req.body
+    const data=await getTokenData(req.headers.authorization)
+    const {username,type}=req.query
+   
+  
     // if(username==null){
     //     res.status(404).json({
     //         success:false,
@@ -76,49 +210,36 @@ const getprofileImageb=async(req,res)=>{
     //     })
     // }
     if(username){
-        const [rows,field]=await pool.execute(`select usi.dateofimage,i.urlimage from usersimages usi 
-        inner join image i on usi.idimage=i.idimage and usi.username=?  and usi.typeofimage=?
-        ORDER BY usi.dateofimage desc limit 1`,[username,type])
-        console.log(rows)
-        if(rows==[]){
-          return  res.status(404).json({
+        const usertwo=new User()
+        const idofuser=await usertwo.checkwithusername(username)
+        const {iduser}=idofuser[0]
+        const rows=await usertwo.getallimagesprofile(iduser,type)
+   
+       
+        if(rows.length==0){
+          return  res.status(200).json({
                 success:false,
                 message:"El usuario no tiene una imagen"
             })
         }
-      return  res.status(200).json({
+        return res.status(200).json({
             success:true,
             message:"imagen obtenida correctamente",
-            urlprofile:rows[0].urlimage,
-            dateofimage:rows[0].dateofimage
+            urlprofile:rows[0].urlfile,
+            dateofimage:rows[0].created_at
         })
     }else if(data){
-        const data=await getTokenData(req.cookies.tokenUser)
-        console.log(data)
-        if(data==null){
-           return res.status(404).json({
-                success:false,
-                message:"Erro al obtner el token"
-            })
-        }
-        const {username,email}=data.data
-        const usert=new User(username,null,null)
-        const rows=await usert.checkexist(username)
+    
+        const data=await getTokenData(req.headers.authorization)
         
-        if(rows==[]){
-           return res.status(404).json({
-                success:false,
-                message:"El usuario no existe"
-            })
+        const {username,email,iduser}=data.data
+        const usert=new User(username,email,iduser)
+       
 
-        }
-
-        const [result]=await pool.query(`select usi.dateofimage,i.urlimage from usersimages usi 
-        inner join image i on usi.idimage=i.idimage and usi.username=?  and usi.typeofimage=?
-        ORDER BY usi.dateofimage desc limit 1`,[username,type])
-        console.log(result)
-        if(rows==[]){
-          return  res.status(404).json({
+        const result=await usert.getallimagesprofile(iduser,type) 
+       
+        if(result.length==0){
+          return  res.status(200).json({
                 success:false,
                 message:"El usuario no tiene una imagen"
             })
@@ -126,18 +247,25 @@ const getprofileImageb=async(req,res)=>{
        return res.status(200).json({
             success:true,
             message:"imagen obtenida correctamente",
-            urlprofile:result[0].urlimage,
-            dateofimage:result[0].dateofimage
+            urlprofile:result[0].urlfile,
+            idimage:result[0].idmediauser,
+            dateofimage:result[0].created_at
         })
 
+    }else{
+        return res.status(200).json({
+            success:false,
+            message:"recurso no encontrado"
+           
+        })
     }
     
-console.log("dd")
+
 }catch(e){
   return  res.status(500).json({
         success:false,
         message:"Erro al recibir imagenes",
-        error:e
+        error:e.message
     })
   
 }
@@ -146,47 +274,24 @@ console.log("dd")
 }
 const adddescription=async(req,res)=>{
     try{
-        console.log(req.headers)
-        const {description}=req.body
-       const data=await getTokenData(req.cookies.tokenUser)
-       console.log(data)
-       if(data==null){
-          return res.status(404).json({
-               success:false,
-               message:"Erro al obtner el token"
-           })
-       }
-       const {username,email}=data.data
-       const [rows,field]=await pool.execute("select * from user where username=? and delete!=1",[username])
-       if(rows==[]){
-          return res.status(404).json({
-               success:false,
-               message:"El usuario no existe"
-           })
-       }
-     const [result]=await pool.query("select * from perfildescription where username=?",[username])
-     console.log(result)
-     if(result!=[]){
-       return res.status(404).json({
-            success:false,
-            message:"El usuario ya tiene descripcion",
-            
-        })
-    //   await  pool.execute(`UPDATE perfildescription 
-    //    set description=? where username=? `,[description,username])
-    //    res.status(200).json({
-    //     success:true,
-    //     message:"La descripcion del usuario fue actualizada correctamente"
-    //    })
-     }else{
+      const user=new User()
+      const data=await getTokenData(req.headers.authorization)
+      const {iduser}=data.data
+      const {description}=req.body
+    const result=await user.checkexitsdescription(iduser)
+        if(result.length!=0){
+            return res.status(404).json({
+                success:false,
+                message:"El usuario ya tiene una descripcion"
+            })
 
-        await pool.execute(`insert into perfildescription(username,description)
-                          values(?,?)  `,[username,description])
-       return res.status(200).json({
+        }
+        await user.addDescription(description,iduser)
+        return res.status(200).json({
             success:true,
-            message:"La descripcion del usuario fue agregado correctamente"
-           })
-     }
+            message:"La descripcion del usuario fue agregada correctamente"
+        
+        })
     }catch(e){
        return res.status(500).json({
             success:false,
@@ -200,42 +305,23 @@ const adddescription=async(req,res)=>{
 
 const updatedescription=async(req,res)=>{
     try{
-        console.log(req.headers)
-        const {description}=req.body
-       const data=await getTokenData(req.cookies.tokenUser)
-       console.log(data)
-       if(data==null){
-          return res.status(404).json({
-               success:false,
-               message:"Erro al obtner el token"
-           })
-       }
-       const {username,email}=data.data
-       const [rows,field]=await pool.execute("select * from user where username=? and delete!=1",[username])
-       if(rows==[]){
-         return  res.status(404).json({
-               success:false,
-               message:"El usuario no existe"
-           })
-       }
-     const [result]=await pool.query("select * from perfildescription where username=?",[username])
-     console.log(result)
-     if(result==[]){
-       return res.status(404).json({
-            success:false,
-            message:"El usuario no tiene descripcion",
-            
-        })
-  
-     }else{
-
-        await  pool.execute(`UPDATE perfildescription 
-        set description=? where username=? `,[description,username])
-       return res.status(200).json({
-         success:true,
-         message:"La descripcion del usuario fue actualizada correctamente"
-        })
-     }
+     const user=new User()
+     const data=await getTokenData(req.headers.authorization)
+     const {iduser}=data.data
+     const {description}=req.body
+   const result=await user.checkexitsdescription(iduser)
+   if(result.length==0){
+         return res.status(404).json({
+              success:false,
+              message:"El usuario no tiene descripcion"
+         })
+   }
+   await user.updateDescription(description,iduser)
+    return res.status(200).json({ 
+        success:true,
+        message:"La descripcion del usuario fue actualizada correctamente"
+    
+    })
     }catch(e){
         return res.status(500).json({
             success:false,
@@ -243,106 +329,49 @@ const updatedescription=async(req,res)=>{
             error:e
         })
     }
-
 }
-
 const getdescription=async(req,res)=>{
     try{
-        const data=await getTokenData(req.cookies.tokenUser)
         const {username}=req.query
-        if(username){
-            const [rows,field]=await pool.execute("select * from user where username=? and delete!=1",[username])
-            if(rows==[]){
-              return  res.status(404).json({
-                    success:false,
-                    message:"El usuario no existe"
-                })
-    
-            }
-            const [result]=await pool.execute(`
-             select description 
-             from perfildescription
-             where username=?
-            `,[username])
-            const {description}=result[0]
-          return  res.status(200).json({
+        const data=await getTokenData(req.headers.authorization)
+        const user=new User()
+        if(username){ 
+         const result=await user.checkwithusername(username)
+         const{iduser}=result[0]
+         const rows=await user.getDescription(iduser)
+         return res.status(200).json({
+            success:true,
+            message:"description obtenida correctamente",
+            description:rows.length==0?[]:rows[0]
+          
+         })
+         }
+            const {iduser}=data.data
+            const rows=await user.getDescription(iduser)
+            return res.status(200).json({
                 success:true,
-                description
+                message:"description obtenida correctamente",
+                description:rows.length==0?[]:rows[0]
             })
-        }else if(data!=null){
-            const data=await getTokenData(req.headers.authorization)
-            console.log(data)
-            if(data==null){
-                return res.status(404).json({
-                    success:false,
-                    message:"Erro al obtner el token"
-                })
-            }
-            const {username,email}=data.data
-            const [rows,field]=await pool.execute("select * from user where username=? and delete!=1",[username])
-            if(rows==[]){
-              return  res.status(404).json({
-                    success:false,
-                    message:"El usuario no existe"
-                })
-    
-            }
-            const [result]=await pool.execute(`
-             select description 
-             from perfildescription
-             where username=?
-            `,[username])
-            const {description}=result[0]
-           return res.status(200).json({
-                success:true,
-                description
-            })
-
-
-        }else{
-          return   res.status(401).json({
-                success:false,
-                description:"No se enviaron ningun datos"
-            })
-        }
-
     }catch(e){
    return  res.status(500).json({
         success:false,
-        message:"Erro al obtener la descripcion"
+        message:"Erro al obtener la descripcion",
+        error:e.message
      })
     }
 }
 const getinteresofselect=async(req,res)=>{
     try{
-        console.log(req.headers)
-     
-       const data=await getTokenData(req.cookies.tokenUser)
-       console.log(data)
-       if(data==null){
-          return res.status(404).json({
-               success:false,
-               message:"Erro al obtner el token"
-           })
-       }
-       const {username,email, namemajor}=data.data
-       const [rows,field]=await pool.execute("select * from user where username=? and delete!=1",[username])
-       if(rows==[]){
-          return res.status(404).json({
-               success:false,
-               message:"El usuario no existe"
-           })
-       }
-
-       const [result]=await pool.query(`select i.naemofinteresorexpert from interests i inner join majorofuniversity 
-       majo on i.idmajoruniver=majo.idmajoruniver and majo.namemajor=?
-       `,[namemajor])
-     return res.status(200).json({
-        success:true,
-        message:"interes o experto obtenidos correctamente",
-        result
-      })
-    
+       const data=await getTokenData(req.headers.authorization)
+       const {idmajor}=data.data
+       const user=new User()
+     const result=await  user.getallinterest(idmajor)
+        return res.status(200).json({
+            success:true,
+            message:"Intereses obtenidos correctamente",
+            result:result.length==0?[]:result
+        })
     }catch(e){
       return  res.status(500).json({
             success:false,
@@ -353,38 +382,17 @@ const getinteresofselect=async(req,res)=>{
 
 const addinterestOrExpert=async(req,res)=>{
     try{
-        const {nameofelemt,interesorexpert}=req.body
-       const data=await getTokenData(req.cookies.tokenUser)
-       console.log(data)
-       if(data==null){
-          return res.status(404).json({
-               success:false,
-               message:"Erro al obtner el token"
-           })
-       }
-       const {username,email, namemajor}=data.data
-       const [rows,field]=await pool.execute("select * from user where username=? and delete!=1",[username])
-       
-       if(rows==[]){
-         return  res.status(404).json({
-               success:false,
-               message:"El usuario no existe"
-           })
-       }
-       const [result]=await pool.query(`select idinterests 
-                             from interests where naemofinteresorexpert=?`,[nameofelemt])
-       if(result==[]){
-       return res.status(404).json({
-            success:false,
-            message:"El interes no existe"
-        })
-       }
-       const {idinterests}=result[0]
-       await pool.execute("insert into interestorexper(idinterests,username,expertoorinterest) values (?,?,?)",[idinterests,username,interesorexpert])
-       return res.status(200).json({
+         const{idinterest,expert}=req.body
+         const data=await getTokenData(req.headers.authorization)
+         const {iduser}=data.data
+        const user=new User()
+      await  user.addInterestOrExpert(idinterest,iduser,expert)
+      return res.status(200).json({
         success:true,
-        message:"Interes o expero agregado correctamente"
-       })
+        message:expert?" experto agregado correctamente":"interes agregado correctamente"
+
+      })
+
        
     }catch(e){
         return res.status(500).json({
@@ -397,196 +405,173 @@ const addinterestOrExpert=async(req,res)=>{
 }
 const getinteresorexpertofuser=async(req,res)=>{
     try{
-        const data=await getTokenData(req.cookies.tokenUser)
-        const {username}=req.query
-        const {expertOr}=req.body
+        console.log("sss")
+        const data=await getTokenData(req.headers.authorization)
+        const {username,expertOr}=req.query
+        const user=new User()
         if(username){
-            const [rows,field]=await pool.execute("select * from user where username=? and delete!=1",[username])
-            if(rows==[]){
-               return res.status(404).json({
-                    success:false,
-                    message:"El usuario no existe"
-                })
-    
-            }
-           const [result]=await pool.query(`SELECT naemofinteresorexpert 
-           from interestorexper ie inner join 
-           interests i on ie.idinterests=i.idinterests and ie.username=? and ie.expertoorinterest=?`,[username,expertOr])
-           console.log(result)
-         return  res.status(200).json({
-            success:true,
-            message:expertOr==1?"se obtuvieron correctamente los experto":"se obtuvieron correctamente los intereses",
-            result
-        })
-
-        }else if(data!=null){
-            const data=await getTokenData(req.headers.authorization)
-            console.log(data)
-            if(data==null){
-              return  res.status(404).json({
-                    success:false,
-                    message:"Erro al obtner el token"
-                })
-            }
-            const {username,email}=data.data
-            const [rows,field]=await pool.execute("select * from user where username=? and delete!=1",[username])
-            if(rows==[]){
-              return  res.status(404).json({
-                    success:false,
-                    message:"El usuario no existe"
-                })
-    
-            }
-            const [result]=await pool.query(`SELECT naemofinteresorexpert 
-            from interestorexper ie inner join 
-            interests i on ie.idinterests=i.idinterests and ie.username=? and ie.expertoorinterest=?`,[username,expertOr])
-            console.log(result)
-          return  res.status(200).json({
+         
+            const result=await user.checkwithusername(username)
+            const {iduser}=result[0]
+           if(expertOr==1){
+            const rows=await user.getexpert(iduser)  
+            return res.status(200).json({
                 success:true,
-                message:expertOr==1?"se obtuvieron correctamente los experto":"se obtuvieron correctamente los intereses",
-                result
+                message:"experto obtenidos correctamente",
+                result:result.length==0?[]:rows
             })
+           }
+           const rows=await user.getInterest(iduser)
+              return res.status(200).json({
+                success:true,
+                message:"interes obtenidos correctamente",
+                result:result.length==0?[]:rows})
 
-          
-
-        }else{
-           return res.status(401).json({
-                success:false,
-                description:"No se enviaron ningun datos"
-            })
+        
+        }else if(data){
+            const {iduser}=data.data
+            if(expertOr==1){
+                const rows=await user.getexpert(iduser)  
+                return res.status(200).json({
+                    success:true,
+                    message:"experto obtenidos correctamente",
+                    result:rows.length==0?[]:rows
+                })
+               }
+               const rows=await user.getInterest(iduser)
+                  return res.status(200).json({
+                    success:true,
+                    message:"interes obtenidos correctamente",
+                    result:rows.length==0?[]:rows})
         }
-
+        
     }catch(e){
    return  res.status(500).json({
         success:false,
-        message:"Erro al obtener la los intereses o el experto del usuario"
+        message:"Erro al obtener la los intereses o el experto del usuario",
+        error:e.message
      })
     }
+}
+const deleteexpertORinterest=async(req,res)=>{
+    try{
+        const {idinterest}=req.query
+        const data=await getTokenData(req.headers.authorization)
+        const {iduser}=data.data
+        const user=new User()
+        await user.deleteinteresOrExpert(iduser,idinterest)
+        return res.status(200).json({
+            success:true,
+            message:"Interes eliminado correctamente"
+        })
+    }catch(e){
+        return res.status(500).json({
+            success:false,
+            message:"Error al eliminar el interes",
+            error:e.message
+        })
+    }
+
 }
 
 const addhobbie=async(req,res)=>{
    try{
-  
-    const data=await getTokenData(req.cookies.tokenUser)
+    const data=await getTokenData(req.headers.authorization)
+    const {iduser}=data.data
     const {namehobbie}=req.body
-    console.log(data)
-    if(data==null){
-        return res.status(404).json({
-            success:false,
-            message:"Erro al obtner el token"
-        })
-    }
-    const {username,email, namemajor}=data.data
-    const [rows,field]=await pool.execute("select * from user where username=? and delete!=1",[username])
-    
-    if(rows==[]){
-       return res.status(404).json({
-            success:false,
-            message:"El usuario no existe"
-        })
-    }
-    const add=await query('Insert into hobbies(namehobbie) values(?)',[namehobbie])
-    const getid=await query("select idhobbie from hobbies where namehobbie=? ",[namehobbie])
-    const {idhobbie}=getid[0]
-    const addhobbie=await query("insert into hobbiesof(idhobbie,username) values (?,?)",[idhobbie,username])
-   return res.status(200).json({
+    const user=new User()
+    await user.addhobbie(namehobbie)
+    const result=await user.getidhobbie(namehobbie)
+    const {idhobbie}=result[0]
+    await user.addhobbieofuser(iduser,idhobbie)
+    return res.status(200).json({
         success:true,
         message:"Hobbie agregado correctamente"
-    })
-   
     
+    })
    }catch(e){
     return  res.status(500).json({
         success:false,
-        message:"Error al agregar hobbie"
+        message:"Error al agregar hobbie",
+        error:e.message
       })
    }
 }
 const gethobbies=async(req,res)=>{
     try{
-        const data=await getTokenData(req.cookies.tokenUser)
-        const {username}=req.query
-        
-        if(username){
-            const rows=await query("select * from user where username=? and delete!=1",[username])
-            if(rows==[]){
-               return res.status(404).json({
-                    success:false,
-                    message:"El usuario no existe"
-                })
-    
-            }
+      const data=await getTokenData(req.headers.authorization)
+      const {iduser}=data.data
+      const {username}=req.query
+      const user=new User()
+      if(username){
+         const result=await user.checkwithusername(username)
+         const {iduser}=result[0]
+         const hobbies=await user.getallhobiesForUser(iduser)
+         return res.status(200).json({
+            success:true,
+            message:"Hobbies obtenidos correctamente",
+            result:hobbies.length==0?[]:hobbies
+         })
+      }
 
-           
-           console.log(rows)
-           const  result=await query("SELECT  namehobbie FROM hobbiesof  inner join hobbies on hobbiesof.idhobbie=hobbies.idhobbie and username=?",[username])
-           console.log(result)
-           return res.status(200).json({
-                success:true,
-                message:"se obtuvieron correctamente los hobbies",
-                result
-                
-            })
-
-        }else if(data!=null){
-            const data=await getTokenData(req.headers.authorization)
-            console.log(data)
-            if(data==null){
-              return  res.status(404).json({
-                    success:false,
-                    message:"Erro al obtner el token"
-                })
-            }
-            const {username,email}=data.data
-            const rows=await query("select * from user where username=? and delete!=1",[username])
-            console.log(rows)
-          
-            if(rows==[]){
-              return  res.status(404).json({
-                    success:false,
-                    message:"El usuario no existe"
-                })
-    
-            }
-            const  result=await query("SELECT  namehobbie FROM hobbiesof  inner join hobbies on hobbiesof.idhobbie=hobbies.idhobbie and username=?",[username])
-           console.log(result)
-           return res.status(200).json({
-                success:true,
-                message:"se obtuvieron correctamente los hobbies",
-                result
-                
-            })
+         const hobbies=await user.getallhobiesForUser(iduser)
+          return res.status(200).json({
+            success:true,
+            message:"Hobbies obtenidos correctamente",
+            result:hobbies.length==0?[]:hobbies
+         })
+      
 
           
 
-        }else{
-            return res.status(401).json({
-                success:false,
-                description:"No se enviaron ningun datos"
-            })
-        }
+       
 
     }catch(e){
     return res.status(500).json({
         success:false,
-        message:"Erro al obtener la los intereses o el experto del usuario"
+        message:"Erro al obtener la los intereses o el experto del usuario",
+        error:e.message
      })
+    }
+}
+const deletehobbies=async(req,res)=>{
+    try{
+       const data=await getTokenData(req.headers.authorization)
+       const {iduser}=data.data
+       const{idhobbiesof}=req.query
+       const user=new User()
+       await user.deletehobbie(iduser,idhobbiesof)
+      return res.status(200).json({
+        success:true,
+        message:"El hobbie fue eliminado correctamente"
+       })
+    }catch(e){
+         return res.status(200).json({
+            success:false,
+            message:"Error al eliminar el hobbie",
+            error:e.message
+         })
     }
 }
 const getallimagesprofile=async(req,res)=>{
     try{
-        const data=await getTokenData(req.cookies.tokenUser)
+        const data=await getTokenData(req.headers.authorization)
         const {username}=req.query
         const {page,limit}=req.query
         const skip=(page-1) * limit
+        const usert=new User()
         let response={
             message:"se obtuvieron correctamente las imagenes",
            
            }
         if(username){
-            const usert=new User(username,null,null)
-            const rows=await usert.checkexist(username)
-            if(rows==[]){
+            
+           
+         
+            const rows=await usert.checkwithusername(username)
+          
+            const {iduser}=rows[0]
+            if(rows.length==0){
                return res.status(404).json({
                     success:false,
                     message:"El usuario no existe"
@@ -595,7 +580,7 @@ const getallimagesprofile=async(req,res)=>{
             }
            
            
-            const resultc=await usert.getallimages(page,limit,username,skip)
+            const resultc=await usert.getallimages(page,limit,iduser,skip)
             response={
                ...response,
                ...resultc
@@ -604,26 +589,16 @@ const getallimagesprofile=async(req,res)=>{
            return res.status(200).json(response)
            
         
-        }else if(data!=null){
-            const data=await getTokenData(req.headers.authorization)
-            console.log(data)
-            if(data==null){
-              return  res.status(404).json({
-                    success:false,
-                    message:"Erro al obtner el token"
-                })
-            }
-            const {username,email,namemajor}=data.data
+        }else if(data){
+            
+         
+            
+            const {username,email,namemajor,iduser}=data.data
             const user=new User(username,email,namemajor)
-            const result=await User.checkexist(user.username)
+            
 
-            if(result==[]){
-                return  res.status(404).json({
-                    success:false,
-                    message:"El usuario no existe"
-                })
-            }
-            const resultc=await User.getallimages(page,limit,username,skip)
+           
+            const resultc=await user.getallimages(page,limit,iduser,skip)
             console.log(skip)
             console.log(resultc)
             response={
@@ -635,14 +610,15 @@ const getallimagesprofile=async(req,res)=>{
     }catch(e){
         return res.status(500).json({
             success:false,
-            message:"Erro al obtner las imagenes del usuario"
+            message:"Erro al obtner las imagenes del usuario",
+            error:e.message
          })
     }
     
 }
 
 const getallfriendprofile=async(req,res)=>{
-    const data=await getTokenData(req.cookies.tokenUser)
+    const data=await getTokenData(req.headers.authorization)
     const {username}=req.query
     const {page,limit}=req.query
     const skip=(page-1) * limit
@@ -652,15 +628,16 @@ const getallfriendprofile=async(req,res)=>{
        }
     if(username){
         const usert=new User(username,null,null)
-        const rows=await usert.checkexist(username)
-        if(rows==[]){
+        const rows=await usert.checkwithusername(username)
+        const {iduser}=rows[0]
+        if(rows.length==0){
            return res.status(404).json({
                 success:false,
                 message:"El usuario no existe"
             })
 
         }
-        const result=await usert.getallfriend(page,limit,username,skip)
+        const result=await usert.getallfriend(page,limit,iduser,skip)
         response={
           ...response,
           ...result
@@ -670,90 +647,68 @@ const getallfriendprofile=async(req,res)=>{
        return res.status(200).json(response)
        
     
-    }else if(data!=null){
-        const data=await getTokenData(req.headers.authorization)
-        console.log(data)
-        if(data==null){
-          return  res.status(404).json({
-                success:false,
-                message:"Erro al obtner el token"
-            })
-        }
-        const {username,email,namemajor}=data.data
-        const user=new User(username,email,namemajor)
-        const result=await user.checkexist(username)
-
-        if(result==[]){
-            return  res.status(404).json({
-                success:false,
-                message:"El usuario no existe"
-            })
-        }
-        const friends=await user.getallfriend(page,limit,username,skip)
-        
+    }
+     
+        const {iduser}=data.data
+        const user=new User()
+        const friends=await user.getallfriend(page,limit,iduser,skip)
         response={
             ...response,
-            friends
+            ...friends
         }
         
        return res.status(200).json(response)
-    }
+    
 
 }
+
 const getpublications=async(req,res)=>{
-    const data=await getTokenData(req.cookies.tokenUser)
+    const data=await getTokenData(req.headers.authorization)
     const {username}=req.query
     const {page,limit}=req.query
+    const usert=new User()
     const skip=(page-1) * limit
+    const type="Publications"
     let response={
-        message:"se obtuvieron correctamente los amigos",
+        message:"se obtuvieron las publicacion correctamente",
        
        }
    try{
     if(username){
-        const usert=new User(username,null,null)
-        const rows=await usert.checkexist(username)
-        if(rows==[]){
+      
+        const rows=await usert.checkwithusername(username)
+        
+        if(rows.length==0){
            return res.status(404).json({
                 success:false,
                 message:"El usuario no existe"
             })
 
         }
-        const result=await usert.getallfriend(page,limit,username,skip)
+        const {iduser}=rows[0]
+
+        const result=await usert.getallpublications(page,limit,iduser,skip,type)
         response={
           ...response,
           ...result
         }
+
        
         
      
        
     
-    }else if(data!=null){
-        const data=await getTokenData(req.headers.authorization)
-        console.log(data)
-        if(data==null){
-          return  res.status(404).json({
-                success:false,
-                message:"Erro al obtner el token"
-            })
-        }
-        const {username,email,namemajor}=data.data
-        const user=new User(username,email,namemajor)
-        const result=await user.checkexist(username)
-
-        if(result==[]){
-            return  res.status(404).json({
-                success:false,
-                message:"El usuario no existe"
-            })
-        }
-        const friends=await user.getallfriend(page,limit,username,skip)
+    }else if(data){
+       
+        const {iduser}=data.data
+       
+      console.log(iduser)
+      console.log(page)
+        const friends=await usert.getallpublications(page,limit,iduser,skip,type)
         
         response={
             ...response,
-            friends
+            ...friends
         }
     }
     return res.status(200).json(response)
@@ -761,16 +716,33 @@ const getpublications=async(req,res)=>{
     return res.status(500).json({
         success:false,
         e:e.message,
-        message:"Erro al obtener la los intereses o el experto del usuario"
+        message:"Erro al obtener las publicaciones"
      })
    }
 }
+const updateNumberSemester=async(req,res)=>{
+    try{
+        const data=await getTokenData(req.headers.authorization)
+        const {semester}=req.body
+        const user=new User()
+        const {iduser}=data.data
+        await user.updateSemester(iduser,semester)
 
+        res.status(200).json({
+            success:true,
+            message:"Semestre actualizado correctamente"
 
+        })
+    }catch(e){
+        res.status(500).json({
+            success:false,
+            message:"Error al actualizar el semestre",
+            error:e.message
+        })
+    }
 
-
-
-   
+}
+ 
 module.exports={
     addimageprofile,
     getprofileImageb,
@@ -784,5 +756,15 @@ module.exports={
     gethobbies,
     getallimagesprofile,
     getallfriendprofile,
-    getpublications
+    getpublications,
+    deleteprofile,
+    updatename,
+    updateapellidop,
+    updataApellidoM,
+    deleteexpertORinterest,
+    deletehobbies,
+    getinformation,
+    getInformacionById,
+    updateNumberSemester
+   
 }

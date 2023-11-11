@@ -22,6 +22,7 @@ app.use(fileUpload({
 app.use('/api/v1',require('./src/routes/user.route'))
 app.use("/user/v1",require('./src/routes/userLogin.route'))
 app.use("/profile",require("./src/routes/UserProfile.route"))
+app.use("/publications",require("./src/routes/Publications.router"))
 app.listen(PORT,()=>{
     console.log(`listen ${PORT}`)
 })
