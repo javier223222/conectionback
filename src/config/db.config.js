@@ -1,5 +1,6 @@
+
 const mysql2=require("mysql2/promise")
-const pool=mysql2.createPool({
+const pool=mysql2.createConnection({
     host:process.env.HOST,
     user:process.env.USERMYSQL,
     password:process.env.PASSWORDMYSQL,
@@ -7,6 +8,19 @@ const pool=mysql2.createPool({
     port:process.env.PORTMYSQL
 })
 
+const config={
+    host:process.env.HOST,
+    user:process.env.USERMYSQL,
+    password:process.env.PASSWORDMYSQL,
+    database:process.env.DB,
+    port:process.env.PORTMYSQL
+}
+const createpool=async()=>{
+   return mysql2.createConnection(config)
+    
+}
+
 module.exports={
-    pool
+    
+    createpool
 }
