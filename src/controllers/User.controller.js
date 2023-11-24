@@ -68,6 +68,7 @@ const createNweUser=async (req,res)=>{
     
 }
 
+
 const confirmUser=async(req,res)=>{
    try{
     const user=new User()

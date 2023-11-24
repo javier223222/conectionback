@@ -19,11 +19,18 @@ app.use(fileUpload({
     useTempFiles:true,
     tempFileDir:"./uploads"
 }))
+
 app.use('/api/v1',require('./src/routes/user.route'))
 app.use("/user/v1",require('./src/routes/userLogin.route'))
 app.use("/profile",require("./src/routes/UserProfile.route"))
+app.use("/friends",require("./src/routes/Friends.router"))
 app.use("/publications",require("./src/routes/Publications.router"))
+app.use("/foros",require("./src/routes/Foros.router"))
+app.use("/foroInteraction",require("./src/routes/ForoInteractin.route"))
+app.use("/chat",require("./src/routes/Chat.router"))
+app.use("/chatInteraction",require("./src/routes/ChatInteractions.router"))
 app.listen(PORT,()=>{
+    
     console.log(`listen ${PORT}`)
 })
 

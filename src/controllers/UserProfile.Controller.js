@@ -6,6 +6,9 @@ const fs=require("fs-extra");
 const { uploadImage } = require("../config/cloundinary.config");
 
 const User = require("../models/User.model");
+const { json } = require("sequelize");
+const { createpool } = require("../config/db.config");
+
 
 
 
@@ -160,6 +163,7 @@ const addimageprofile=async(req,res)=>{
     const usert=new User()
    
     if(req.files?.imagenprofile){
+        
         const imageur=await uploadImage(req.files.imagenprofile.tempFilePath)
         
         await usert.saveFile(imageur.secure_url,imageur.public_id)
@@ -617,50 +621,6 @@ const getallimagesprofile=async(req,res)=>{
     
 }
 
-const getallfriendprofile=async(req,res)=>{
-    const data=await getTokenData(req.headers.authorization)
-    const {username}=req.query
-    const {page,limit}=req.query
-    const skip=(page-1) * limit
-    let response={
-        message:"se obtuvieron correctamente los amigos",
-       
-       }
-    if(username){
-        const usert=new User(username,null,null)
-        const rows=await usert.checkwithusername(username)
-        const {iduser}=rows[0]
-        if(rows.length==0){
-           return res.status(404).json({
-                success:false,
-                message:"El usuario no existe"
-            })
-
-        }
-        const result=await usert.getallfriend(page,limit,iduser,skip)
-        response={
-          ...response,
-          ...result
-        }
-       
-        
-       return res.status(200).json(response)
-       
-    
-    }
-     
-        const {iduser}=data.data
-        const user=new User()
-        const friends=await user.getallfriend(page,limit,iduser,skip)
-        response={
-            ...response,
-            ...friends
-        }
-        
-       return res.status(200).json(response)
-    
-
-}
 
 const getpublications=async(req,res)=>{
     const data=await getTokenData(req.headers.authorization)
@@ -743,6 +703,136 @@ const updateNumberSemester=async(req,res)=>{
 
 }
  
+const getSocialMediaOptions=async(req,res)=>{
+    try{ 
+       const user=new User()
+       const result =await user.getOptionsSocialMedia()
+       return res.status(200).json({
+        success:true,
+        message:"Opciones de redes sociales obtenidas correctamente",
+        result:result.length==0?[]:result
+       })
+
+    }catch(e){
+        return res.status(500).json({
+            success:false,
+            message:"Error al obtener las opciones de redes sociales",
+            error:e.message
+        
+        })
+    }
+}
+const addSocialMedia=async(req,res)=>{
+    try{
+         const {idoption,link}=req.body
+         const data=await getTokenData(req.headers.authorization)
+         const {iduser}=data.data
+        const user=new User()
+        await user.addSocialMedia(iduser,link,idoption)
+        return res.status(200).json({
+            success:true,  
+            message:"Red social agregada correctamente"
+        })
+    }catch(e){
+      return res.status(500),json({
+        success:false,
+        message:"Error al agregar la red social",
+      })
+    }
+}
+const getSocialMedia=async(req,res)=>{
+
+    try{
+      const data=await getTokenData(req.headers.authorization)
+      const {iduser}=data.data
+      const {username}=req.query
+      let result=null;
+    const user=new User()
+    if(username){
+        const rows=await user.checkwithusername(username)
+        const {iduser}=rows[0]
+        result=await user.getSocialMedia(iduser)
+    }else{
+        result=await user.getSocialMedia(iduser)
+
+    }
+
+     
+
+    return res.status(200).json({
+        success:true,
+        message:"Redes sociales obtenidas correctamente",
+        result
+    })
+    }catch(e){
+        return res.status(500).json({
+            success:false,
+            message:"Error al obtener las redes sociales",
+            error:e.message
+        })
+    }
+}
+
+const updateSocialmedia=async(req,res)=>{
+    try{
+      const {idsocialmedia,nelink}=req.body
+      const data=await getTokenData(req.headers.authorization)
+      const {iduser}=data.data
+      const user=new User()
+      await user.updateSocialMedia(iduser,idsocialmedia,nelink)
+      return res.status(200).json({
+            success:true,
+            message:"Red social actualizada correctamente"
+      })
+    }catch(e){
+        return res.status(500).json({
+            success:false,
+            message:"Error al actualizar la red social",
+            error:e.message
+        })
+
+    }
+}
+const deleteSocialMedia=async(req,res)=>{
+    try{
+        const {idsocialmedia}=req.query
+        const data=await getTokenData(req.headers.authorization)
+        const {iduser}=data.data
+        const user=new User()
+        await user.deleteSocialMedia(iduser,idsocialmedia)
+        return res.status(200).json({
+            success:true,
+            message:"Red social eliminada correctamente"
+        })
+
+    }catch(e){
+        return res.status(500).json({
+            success:false,
+            message:"Error al eliminar la red social",
+            error:e.message
+        })
+    }
+}
+
+const getIdUserByToken=async(req,res)=>{
+    try{
+     
+      const data=await getTokenData(req.headers.authorization)
+      const {iduser}=data.data
+      return res.status(200).json({
+        success:true,
+        iduser
+      })
+    }catch(e){
+      return res.status(500).json({
+        success:false,
+        message:"Error al obtener el id del usuario",
+        error:e.message
+      })
+    }
+  }
+
+
 module.exports={
     addimageprofile,
     getprofileImageb,
@@ -755,7 +845,6 @@ module.exports={
     addhobbie,
     gethobbies,
     getallimagesprofile,
-    getallfriendprofile,
     getpublications,
     deleteprofile,
     updatename,
@@ -765,6 +854,12 @@ module.exports={
     deletehobbies,
     getinformation,
     getInformacionById,
-    updateNumberSemester
+    updateNumberSemester,
+    getSocialMediaOptions,
+    addSocialMedia,
+    getSocialMedia,
+    updateSocialmedia,
+    deleteSocialMedia,
+    getIdUserByToken
    
 }

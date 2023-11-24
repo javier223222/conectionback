@@ -16,6 +16,7 @@ cloundinary.v2.config({
  const deleteImage = async (publicId) => {
     return await cloundinary.v2.uploader.destroy(publicId)
   }
+  
 module.exports={
     uploadImage,
     deleteImage
