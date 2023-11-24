@@ -47,10 +47,10 @@ let transporter = nodemailer.createTransport({
         <div id="email___content">
             <img src="https://res.cloudinary.com/drquhxacx/image/upload/v1696872183/avatar/easynotes-removebg-preview_rpiw2v.png" alt="">
             <h2 >Hola ${ name }</h2>
-            <p >Para confirmar  su cuenta de easy notes  ingrese al siguiente link</p>
+            <p >Para confirmar  su cuenta de upConnection ingrese al siguiente link</p>
             <a
             style="color:#FFCDCD"
-                href="http://localhost:80/api/v1/user/${token}"
+                href="${process.env.ENPOINT_CONFIRM_EMAIL}${token}"
                 target="_blank"
             >Confirmar Cuenta</a>
         </div>

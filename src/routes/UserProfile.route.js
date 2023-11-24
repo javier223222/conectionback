@@ -14,7 +14,6 @@ route.post("/hobbie",verifyToken,UserProfile.addhobbie)
 route.get("/hobbie",verifyToken,UserProfile.gethobbies)
 route.delete("/hobbie",verifyToken,UserProfile.deletehobbies)
 route.get("/getimagesprofile",verifyToken,UserProfile.getallimagesprofile)
-route.get("/allfriendsprofile",verifyToken,UserProfile.getallfriendprofile)
 
 route.delete("/",verifyToken,UserProfile.deleteprofile)
 route.patch("/updateusername",verifyToken,UserProfile.updatename)
@@ -23,5 +22,12 @@ route.patch("/updateapellidom",verifyToken,UserProfile.updataApellidoM)
 route.get("/getInformation",verifyToken,UserProfile.getinformation)
 route.get("/getInformationById",verifyToken,UserProfile.getInformacionById)
 route.patch("/updatesemester",verifyToken,UserProfile.updateNumberSemester)
+route.get("/getsocialmediaoptions",verifyToken,UserProfile.getSocialMediaOptions)
+route.post("/socialmedia",verifyToken,UserProfile.addSocialMedia)
+route.get("/socialmedia",verifyToken,UserProfile.getSocialMedia)
+route.patch("/socialmedia",verifyToken,UserProfile.updateSocialmedia)
+route.delete("/socialmedia",verifyToken,UserProfile.deleteSocialMedia)
+route.get("/getIdByToken",verifyToken,UserProfile.getIdUserByToken)
+
 
 module.exports=route

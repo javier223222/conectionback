@@ -1,0 +1,15 @@
+const route=require("express").Router()
+const Friends=require("../controllers/Friends.controller")
+const { verifyToken } = require("../middlewares")
+route.get("/",verifyToken,Friends.getallfriendprofile)
+route.delete("/",verifyToken,Friends.deleteFriend)
+route.post("/",verifyToken,Friends.sendFriendRequest)
+route.patch("/",verifyToken,Friends.acceptFriendRequest)
+route.delete("/deleterequest",verifyToken,Friends.deleteRequestFriend)
+route.get("/requesteFriends",verifyToken,Friends.getRequestFriends)
+route.get("/allSendRequestFriend",verifyToken,Friends.getallSendRequest)
+route.delete("/deleteSendRequest",verifyToken,Friends.deleteSendRequest)
+route.get("/specificFriend",verifyToken,Friends.getSpecificFriend)
+route.get("/getSpecificRequest",verifyToken,Friends.getSpecificRequest)
+
+module.exports=route
