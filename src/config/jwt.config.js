@@ -3,12 +3,12 @@ const jwt =require("jsonwebtoken")
 const getToken=async (payload)=>{
     return jwt.sign({
         data:payload
-    },'ACCESS',{expiresIn:"1h"})
+    },`${process.env.SECRET_NAME}`,{expiresIn:"24h"})
 }
 
 const getTokenData= async (token)=>{
     let data=null
-    jwt.verify(token,'ACCESS',(err,decoded)=>{
+    jwt.verify(token,`${process.env.SECRET_NAME}`,(err,decoded)=>{
         if(err){
             console.log("error al obtener el token")
         }else{
@@ -20,5 +20,6 @@ const getTokenData= async (token)=>{
 
 module.exports={
     getToken,
-    getTokenData
+    getTokenData,
+
 }

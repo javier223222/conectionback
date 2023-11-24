@@ -2,45 +2,58 @@ const { serialize } = require("cookie");
 const { pool } = require("../config/db.config")
 const { getToken } = require("../config/jwt.config")
 const bcrypt = require('bcryptjs');
+const User = require("../models/User.model");
 const login=async(req,res)=>{
+      
     try{
+      
+        const usersr=new User()
         const {usernameoremail,passworduser}=req.body
-        console.log(req.cookies)
-        const [rows,field]=await pool.execute('SELECT * FROM user where username=? or mail=?',[usernameoremail,usernameoremail])
-        console.log(rows[0])
-        if(!rows){
-           return res.status(404).json({
-            success:false,
-            message:"Usuario no encotrado"
-           })
+        if(!usernameoremail || !passworduser){
+            return res.status(404).json({
+               success:false,
+               message:"datos no recibidos"
+            })
         }
        
-        const {username,mail,password,status}=rows[0]
-        const [result]=await pool.query(`select namemajor from majorofuniversity ma 
-                                 inner join dataaboutmajor dama on
-                                  ma.idmajoruniver=dama.idmajoruniver and username=?`,[username])
+        const rows=await usersr.selectAllInformationLogins(usernameoremail) 
+        const deleted=await usersr.checkexistdelet(usernameoremail,usernameoremail) 
+         console.log(rows)
+         console.log(deleted)
+        if(rows.length==0 && deleted.length==0){
+           return res.status(400).json({
+            success:false,
+            message:"username,email or password incorrecto"
+           })
+        }else if(deleted.length!=0){
+            return res.status(400).json({success:false,message:"La cuenta fue eliminada"})
+        }
+       
+        const {username,email,password,status,iduser}=rows[0]
+        console.log(username,email,password,status,iduser)
+        const result=await usersr.selectAllmajorLogin(iduser)
         console.log(result)
         console.log(username+status)
         let token=null
         let serialized=null
-        if(result!=[]){
-            const {namemajor}=result[0]
+        if(result.length!=0){
+            const {namemajor,idmajor}=result[0]
             
-            token=await getToken({username,mail,namemajor})
+            token=await getToken({username,email,namemajor,iduser,idmajor})
             serialized= serialize("tokenUser",token,{
                 httpOnly:true,
                 secure:process.env.NODE_ENV =='production',
-                sameSite:"none",
-                maxAge:60 * 60 * 24 * 7 ,
+                sameSite:process.env.NODE_ENV=='production'?"none":"lax",
+                maxAge:60 * 60 * 24 ,
                 path:'/'
             })
         }else{
-            token=await getToken({username,mail})
+            token=await getToken({username,email,iduser})
             serialized= serialize("tokenUser",token,{
                 httpOnly:true,
-                secure:process.env.NODE_ENV =='production',
+                secure:process.env.NODE_ENV=='production'?"none":"lax",
                 sameSite:"none",
-                maxAge:60 * 60 * 24 * 7 ,
+                maxAge:60 * 60 * 24  ,
                 path:'/'
             })
         }
@@ -62,27 +75,34 @@ const login=async(req,res)=>{
                 //    }
                 })
            
-           }else{
-               return res.json({
+           }else if (!result  ){
+               return res.status(400).json({
                    success:false,
-                   msg:"el usuario no esta verificado"
+                   message:"username,email or password incorrecto"
                })
+           }else{
+            return res.status(400).json({
+                success:false,
+                message:"username,email or password incorrecto"
+            })
            }
        });
-
-    
+ 
+ 
 
     }catch(e){
-        res.status(500).json({
+        res.status(200).json({
             success:false,
-            message:"Error al iniciar sesion",
+            message:"nombre de usuario o correo o password invalidos",
             error:e.message
+           
           })
     }
     
     
       
 }
+
 
 
 module.exports={

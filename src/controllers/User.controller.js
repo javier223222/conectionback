@@ -3,39 +3,51 @@ const { getTemplate, sendEmail } = require("../config/email.config")
 const { getToken, getTokenData } = require("../config/jwt.config")
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
+const User = require("../models/User.model");
 const saltRounds = 10;
 
 
 
 const createNweUser=async (req,res)=>{
-    console.log("ssmsmsnsm")
+  
     try{
-        const {username,nombre,apellidop,apellidom,correo,fechanacimiento,sexo,password}=req.body
-        console.log(password)
+        const {username,nombre,apellidop,apellidom,correo,fechanacimiento,sexo,password,namemajor}=req.body
+        const user=new User()
         let encryppaswwor=password
         const code=uuidv4()
-       
-         const [rows]=await pool.execute("select * from user where  username=? and delete=1",[username])
-         if(rows!=[]){
-            res.status(400).json({
-                message:"Su cuenta fue eliminada puede restaurar"
+        const rows= await user.checkexist(username,correo)
+         const result=await user.checkexistdelet(username,correo) 
+        
+         if(!rows.length==0){
+           return res.status(200).json({
+                success:false,
+                message:"La cuenta ya existe"
             })
+         }else if(!result.length==0){
+           return res.redirect("http://localhost:3000/Register/information")
          }
 
      
 
-      const insert=  await pool.query(`INSERT INTO user(username,name,apellidop,apellidom,birthday,password,gender,mail,code) VALUES (?,?,?,?,?,?,?,?,?)`,
-        [username,nombre,apellidop,apellidom,fechanacimiento,encryppaswwor,sexo,correo,code])
+       await user.createUser(username,nombre,apellidop,apellidom,new Date(fechanacimiento),password,sexo,correo,code) 
+      const resultof=await user.checkexist(username,correo) 
+      const {iduser}=resultof[0]
         bcrypt.genSalt(saltRounds, (err, salt)=> {
             bcrypt.hash(password, salt, (err, hash) => {
               if(err) throw err
-                  pool.query('UPDATE user SET password=? where username=? ',[hash,username])
+              user.updatepassword(hash,new Date(),iduser)
+
+                  
                });
            });
+           
+
+     await user.addmajor(iduser,namemajor)            
+
 
           
        
-        const token=await getToken({username,correo,code})
+        const token=await getToken({username,correo,code,iduser})
         const template= getTemplate(username,token)
        await sendEmail(correo,"Confirmacion de cuenta",template)
         return res.status(200).json({
@@ -49,15 +61,17 @@ const createNweUser=async (req,res)=>{
        return res.status(500).json({
         success:false,
         message:"El correo o la contrasenia ya existe",
-        error:e
+        error:e.message
        })
     }
    
     
 }
 
+
 const confirmUser=async(req,res)=>{
    try{
+    const user=new User()
      const {token}=req.params
      console.log(token)
      const data=await getTokenData(token)
@@ -65,9 +79,9 @@ const confirmUser=async(req,res)=>{
      if(data==null){
       return res.redirect(process.env.ERRORPAGE)
      }
-     const {username,correo,code}= data.data
- 
-   await  pool.query("UPDATE user SET status=? where username=?",['VERIFIED',username])
+     const {username,correo,code,iduser}= data.data
+     
+   await  user.updataVerified(iduser)
    //todo for next js template
     return res.redirect(process.env.LOGINPAGE)
    }catch(e){
@@ -75,6 +89,7 @@ const confirmUser=async(req,res)=>{
    }
 
 }
+
 module.exports={
     createNweUser,
     confirmUser

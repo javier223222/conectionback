@@ -1,0 +1,20 @@
+const { verifyToken } = require("../middlewares")
+const Publications=require("../controllers/Publications.controller")
+const route=require("express").Router()
+route
+     .get("/",verifyToken,Publications.getpublications)
+     .get("/getmediapublications",verifyToken,Publications.getmediaPublications)
+     .get("/comments",verifyToken,Publications.comments)
+     .get("/commentmedia",verifyToken,Publications.commentmedia)
+     .get("/likesofpublications",verifyToken,Publications.likesofpublications)
+     .post("/",verifyToken,Publications.addPublication)
+     .post("/addcomment",verifyToken,Publications.addMessage)
+     .patch("/updateBodyOfPublication",verifyToken,Publications.updateBodyOfPub)
+     .patch("/addLike",verifyToken,Publications.addLike)
+     .patch("/updateprivacyOfPublication",verifyToken,Publications.updateprivacyOfPublication)
+     .patch("/updateMediaPublication",verifyToken,Publications.updateMediaPublication)
+     .delete("/deletedMediaPublication",verifyToken,Publications.deletedMediaPublication)
+     .delete("/",verifyToken,Publications.deletePublication)
+     .get("/friendsPublications",verifyToken,Publications.getAllFriendPublications)
+module.exports=route
+
