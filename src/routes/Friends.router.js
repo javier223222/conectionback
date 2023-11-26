@@ -11,5 +11,6 @@ route.get("/allSendRequestFriend",verifyToken,Friends.getallSendRequest)
 route.delete("/deleteSendRequest",verifyToken,Friends.deleteSendRequest)
 route.get("/specificFriend",verifyToken,Friends.getSpecificFriend)
 route.get("/getSpecificRequest",verifyToken,Friends.getSpecificRequest)
+route.get("/getSpecifcRequesrFriendSide",verifyToken,Friends.getSpecificRequestSideSeeFr)
 
 module.exports=route

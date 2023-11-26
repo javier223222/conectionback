@@ -13,10 +13,10 @@ const getAllChatMember=async(req,res)=>{
     for (let i = 0; i < result.length; i++) {
         for(let key in result[i]){
            result[i][key]==iduser?delete result[i][key]:null
-           const {username}=await users.getnameProfileannombre(result[i]?.iduserone||result[i]?.idusertwo)
+           const {username,name,apellidop,apellidom}=await users.getnameProfileannombre(result[i]?.iduserone||result[i]?.idusertwo)
            const imagenOduser=await users.getallimagesprofile(result[i]?.iduserone||result[i]?.idusertwo,'Profile')
             const {urlfile}=imagenOduser.length>0?imagenOduser[0]:{urlfile:null}
-            result[i]={...result[i],username,imageuser:urlfile}
+            result[i]={...result[i],username,imageuser:urlfile,name,apellidop,apellidom}
         }
          
      }
@@ -47,7 +47,7 @@ const getMessages=async(req,res)=>{
       let element = result[i];
       const {name,apellidop,apellidom,username}=await user.getnameProfileannombre(element.idusersend)
       const imageUser= await user.getallimagesprofile(element.idusersend,'Profile')
-      const {urlfile}=imageUser[0]
+      const {urlfile}=imageUser.length==0?{urlfile:null}:imageUser[0]
       element={...element,name,apellidop,apellidom,username,imageuser:urlfile}
       result[i]=element
     }

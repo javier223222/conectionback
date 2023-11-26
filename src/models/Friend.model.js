@@ -147,5 +147,14 @@ class Friend{
         return result
    }
 
+   getSpecificRequestSideSeeFr=async(iduser,idfriend)=>{
+     const pool=await createpool()
+     pool.connect()
+     const [result]=await pool.execute(`select idsendFriendShip,idSender,idrecives from sendfriendship where idSender=? and idrecives=?`,[idfriend,iduser])
+     pool.end()
+
+     return result
+   }
+
 }
 module.exports=Friend

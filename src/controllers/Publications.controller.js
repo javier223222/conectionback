@@ -346,7 +346,7 @@ const deletePublication=async(req,res)=>{
     const pool=await createpool()
     
     try{
-      const {idpublicacion}=req.body
+      const {idpublicacion}=req.query
        await pool.beginTransaction()
       const publication=new Publication(idpublicacion,null,null,null,null)
       await publication.deleteLogicPublication(pool)

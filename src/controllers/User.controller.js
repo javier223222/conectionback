@@ -18,7 +18,7 @@ const createNweUser=async (req,res)=>{
         const rows= await user.checkexist(username,correo)
          const result=await user.checkexistdelet(username,correo) 
         
-         if(!rows.length==0){
+         if(rows.length!=0){
            return res.status(200).json({
                 success:false,
                 message:"La cuenta ya existe"
@@ -28,9 +28,11 @@ const createNweUser=async (req,res)=>{
          }
 
      
-
+         console.log("jj")
        await user.createUser(username,nombre,apellidop,apellidom,new Date(fechanacimiento),password,sexo,correo,code) 
+     
       const resultof=await user.checkexist(username,correo) 
+      
       const {iduser}=resultof[0]
         bcrypt.genSalt(saltRounds, (err, salt)=> {
             bcrypt.hash(password, salt, (err, hash) => {

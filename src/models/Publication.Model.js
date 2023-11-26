@@ -109,15 +109,43 @@ deletedCommentPublication=async(pool,idcoment)=>{
 
 deletePublication=async(pool,iduser)=>{
    const [result]=await pool.execute(`delete from publicaciones where iduser=? and idpublicacion=?`,[iduser,this.idpublication])
-    if(result.affectedRows==0){
+   const [resulttwo]=await pool.execute(`
+   SELECT  ume.idmediauser FROM image_of_publication
+     ip inner join users_media ume on ip.idmediauser=ume.idmediauser 
+     and ip.idpublicacion=? and ume.deleted=0  inner join files f on ume.idfile=f.idfile
+   `,[this.idpublication])
+    const {idmediauser}=resulttwo[0]
+    const [resultthree]=await pool.execute(`delete from image_of_publication where idpublicacion=?`,[this.idpublication])
+    const [resultfour]=await pool.execute(`delete from users_media where idmediauser=?`,[idmediauser])
+
+    if(result.affectedRows==0||resultthree.affectedRows==0||resultfour.affectedRows==0){
          throw new Error("No se pudo eliminar la publicacion")
     }
     return true
 }
 
 deleteLogicPublication=async(pool)=>{
-    const [result]=await pool.execute(`update publicaciones set deleted=1,deleted_at=? where  and idpublicacion=?`,[new Date(),this.idpublication])
-    if(result.affectedRows==0){
+    const [result]=await pool.execute(`update publicaciones set deleted=1,deleted_at=? where  idpublicacion=?`,[new Date(),this.idpublication])
+    const [resulthree]=await pool.execute(`
+    SELECT  ume.idmediauser FROM image_of_publication
+      ip inner join users_media ume on ip.idmediauser=ume.idmediauser 
+      and ip.idpublicacion=? and ume.deleted=0  inner join files f on ume.idfile=f.idfile
+    `,[this.idpublication])
+    if(resulthree.length==0){
+
+    }else{
+        const {idmediauser}=resulthree[0]
+        console.log(idmediauser)
+        const [resultfour]=await pool.execute(`update users_media set deleted=1,deleted_at=? where  idmediauser=?`,[new Date(),idmediauser])
+       if(resultfour.affectedRows==0){
+           throw new Error("No se pudo eliminar la publicacion")
+       }
+    }
+
+   
+    const [resulttwo]=await pool.execute(`update image_of_publication set deleted=1,deleted_at=? where  idpublicacion=?`,[new Date(),this.idpublication])
+  
+    if(result.affectedRows==0|| resulttwo.affectedRows==0 ){
          throw new Error("No se pudo eliminar la publicacion")
     }
     return true
@@ -169,7 +197,7 @@ getmediapublication=async()=>{
     pool.connect()
     const [result]=await pool.execute(`SELECT  ip.idImageOfPublication,ip.idmediauser,ip.idpublicacion,ip.created_at,ume.iduser,f.urlfile,f.publicid FROM image_of_publication
      ip inner join users_media ume on ip.idmediauser=ume.idmediauser 
-     and ip.idpublicacion=? inner join files f on ume.idfile=f.idfile`,[this.idpublication])
+     and ip.idpublicacion=? and ume.deleted=0  inner join files f on ume.idfile=f.idfile`,[this.idpublication])
      pool.end()
      return result
 }
