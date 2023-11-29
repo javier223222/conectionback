@@ -43,7 +43,7 @@ const login=async(req,res)=>{
             serialized= serialize("tokenUser",token,{
                 httpOnly:true,
                 secure:process.env.NODE_ENV =='production',
-                sameSite:process.env.NODE_ENV=='production'?"none":"lax",
+                sameSite:"lax",
                 maxAge:60 * 60 * 24 ,
                 path:'/'
             })
@@ -51,8 +51,8 @@ const login=async(req,res)=>{
             token=await getToken({username,email,iduser})
             serialized= serialize("tokenUser",token,{
                 httpOnly:true,
-                secure:process.env.NODE_ENV=='production'?"none":"lax",
-                sameSite:"none",
+                secure:process.env.NODE_ENV =='production',
+                sameSite:"lax",
                 maxAge:60 * 60 * 24  ,
                 path:'/'
             })
