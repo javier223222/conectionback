@@ -35,7 +35,7 @@ const addMessage = async (req, res) => {
           
         }
         const imageUser= await user.getallimagesprofile(iduser,'Profile')
-        const {urlfile}=imageUser[0]
+        const {urlfile}=imageUser.length==0?{urlfile:null}:imageUser[0]
         const {name,apellidop,apellidom,username}=await user.getnameProfileannombre(iduser)
         if(req.files?.messageMedia){
             const media=await uploadImage(req.files.messageMedia.tempFilePath)

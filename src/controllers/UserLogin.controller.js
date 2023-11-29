@@ -43,7 +43,7 @@ const login=async(req,res)=>{
             serialized= serialize("tokenUser",token,{
                 httpOnly:true,
                 secure:process.env.NODE_ENV =='production',
-                sameSite:process.env.NODE_ENV=='production'?"none":"lax",
+                sameSite:"lax",
                 maxAge:60 * 60 * 24 ,
                 path:'/'
             })
@@ -51,8 +51,8 @@ const login=async(req,res)=>{
             token=await getToken({username,email,iduser})
             serialized= serialize("tokenUser",token,{
                 httpOnly:true,
-                secure:process.env.NODE_ENV=='production'?"none":"lax",
-                sameSite:"none",
+                secure:process.env.NODE_ENV =='production',
+                sameSite:"lax",
                 maxAge:60 * 60 * 24  ,
                 path:'/'
             })
@@ -63,7 +63,7 @@ const login=async(req,res)=>{
         console.log(token)
         bcrypt.compare(passworduser, password, (err, result)=> {
             if(err) throw err;
-           if(result && status !="UNIVERIFIED"  ){
+           if(result && status !="UNIVERIFIED" || status!=null ){
             
             res.setHeader('Set-Cookie',serialized)
                return res.status(200).json({
@@ -75,7 +75,7 @@ const login=async(req,res)=>{
                 //    }
                 })
            
-           }else if (!result  ){
+           }else if (!result){
                return res.status(400).json({
                    success:false,
                    message:"username,email or password incorrecto"

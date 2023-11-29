@@ -14,7 +14,7 @@ route.post("/hobbie",verifyToken,UserProfile.addhobbie)
 route.get("/hobbie",verifyToken,UserProfile.gethobbies)
 route.delete("/hobbie",verifyToken,UserProfile.deletehobbies)
 route.get("/getimagesprofile",verifyToken,UserProfile.getallimagesprofile)
-
+route.get("/getUsernameByToken",verifyToken,UserProfile.getUsernameByToken)
 route.delete("/",verifyToken,UserProfile.deleteprofile)
 route.patch("/updateusername",verifyToken,UserProfile.updatename)
 route.patch("/updateapellidop",verifyToken,UserProfile.updateapellidop)

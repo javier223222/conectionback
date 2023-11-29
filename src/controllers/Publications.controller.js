@@ -346,7 +346,7 @@ const deletePublication=async(req,res)=>{
     const pool=await createpool()
     
     try{
-      const {idpublicacion}=req.body
+      const {idpublicacion}=req.query
        await pool.beginTransaction()
       const publication=new Publication(idpublicacion,null,null,null,null)
       await publication.deleteLogicPublication(pool)
@@ -406,6 +406,7 @@ const getAllFriendPublications=async(req,res,)=>{
             }
             
         }
+
         allPubliInterest=quickSort(allPubliInterest)
         totalpages=Math.ceil(allPubliInterest.length/limit)
 
@@ -432,21 +433,27 @@ const getAllFriendPublications=async(req,res,)=>{
 
      for (let i = 0; i < result.result.length; i++) {
         publicacion.setIduser(result.result[i].idfriendone||result.result[i].idfriendtwo)
-
+        console.log(result.result[i].idfriendone||result.result[i].idfriendtwo)
 
         const publiOfMyfrien=await publicacion.getAllGeneralPublications() 
         console.log(publiOfMyfrien)
         if(publiOfMyfrien.length!=0){
-            for (let i = 0; i < publiOfMyfrien.length; i++) {
+            console.log(publiOfMyfrien.length)
+            for (let y = 0; y < publiOfMyfrien.length; y++) {
                 const {username}=await user.getnameProfileannombre(result.result[i].idfriendone||result.result[i].idfriendtwo)
                 const imagenOduser=await user.getallimagesprofile(result.result[i].idfriendone||result.result[i].idfriendtwo,'Profile')
+                
                 const {urlfile}=imagenOduser.length>0?imagenOduser[0]:{urlfile:null}
                 publiOfMyfrien[i]={...publiOfMyfrien[i],username,imageuser:urlfile}
+                
             }
         }
+        
         if(publiOfMyfrien.length!=0){
+         
             allMyFriendsPubli=[...new Set([...allMyFriendsPubli,...publiOfMyfrien])]
         }
+        
         
        
         

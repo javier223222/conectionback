@@ -318,6 +318,28 @@ const getSpecificRequest=async(req,res)=>{
     }
 }
 
+const getSpecificRequestSideSeeFr=async(req,res)=>{
+     try{
+        
+        const {idfriend}=req.query
+        const data=await getTokenData(req.headers.authorization)
+        const {iduser}=data.data
+        const friend=new Friend()
+        const result=await friend.getSpecificRequestSideSeeFr(iduser,idfriend)
+        return res.status(200).json({
+            success:true,
+            message:"Solicitud obtenida correctamente",
+            result:result
+        })
+     }catch(e){
+            return res.status(500).json({
+                success:false,
+                message:"Error al obtener la solicitud",
+                error:e.message
+            })
+     }
+}
+
 module.exports={
     deleteFriend,
     sendFriendRequest,
@@ -328,5 +350,6 @@ module.exports={
     getallSendRequest,
      deleteSendRequest,
      getSpecificFriend,
-        getSpecificRequest
+    getSpecificRequest,
+    getSpecificRequestSideSeeFr
 }

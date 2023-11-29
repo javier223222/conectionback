@@ -29,6 +29,7 @@ app.use("/foros",require("./src/routes/Foros.router"))
 app.use("/foroInteraction",require("./src/routes/ForoInteractin.route"))
 app.use("/chat",require("./src/routes/Chat.router"))
 app.use("/chatInteraction",require("./src/routes/ChatInteractions.router"))
+app.use("/people",require("./src/routes/People.router"))
 app.listen(PORT,()=>{
     
     console.log(`listen ${PORT}`)

@@ -831,7 +831,23 @@ const getIdUserByToken=async(req,res)=>{
       })
     }
   }
+const getUsernameByToken=async(req,res)=>{
+    try{ 
+        const data=await getTokenData(req.headers.authorization)
+        const {username}=data.data
+        return res.status(200).json({
+            success:true,
+            username
+        })
 
+    }catch(e){
+        return res.status(500).json({
+            success:false,
+            message:"Error al obtener el username del usuario",
+            error:e.message
+        })
+    }
+}
 
 module.exports={
     addimageprofile,
@@ -860,6 +876,7 @@ module.exports={
     getSocialMedia,
     updateSocialmedia,
     deleteSocialMedia,
-    getIdUserByToken
+    getIdUserByToken,
+    getUsernameByToken
    
 }
