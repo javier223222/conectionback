@@ -22,6 +22,7 @@ class User{
       pool.end()
       return results
     }
+
     getmajor=async(iduser)=>{
         const pool=await createpool()
       pool.connect()
@@ -49,49 +50,12 @@ class User{
     getallinterest=async(idmajor)=>{
        const pool=await createpool()
        pool.connect()
-        const [result]=await pool.execute("select * from expertoorinterest where idmajor=?",[idmajor])
+        const [result]=await pool.execute(`select idineterestorexpert,namefininteorexpert,description,idmajor,craete_at
+         from expertoorinterest where idmajor=?`,[idmajor])
         pool.end()
         return result
     }
-    addhobbie=async(hobbie)=>{
-      const pool=await createpool()
-      pool.connect()
-      await pool.execute("insert into hobbies(namehobbie) values(?)",[hobbie])
-       
-      pool.end()
-    }
-    getidhobbie=async(hobbie)=>{
-        const pool=await createpool()
-        pool.connect()
-        const [result]=await pool.execute("select idhobbie from hobbies where namehobbie=?",[hobbie])
-        pool.end()
-        return result
-    }
-    addhobbieofuser=async(iduser,idhobbie)=>{
-        const pool=await createpool()
-        pool.connect()
-        await pool.execute("insert into  hobbiesof(iduser,idhobbie) values(?,?)",[iduser,idhobbie])
-        pool.end()
-        
-    }
 
-    deletehobbie=async(iduser,idhobbie)=>{
-        const pool=await createpool()
-        pool.connect()
-        await pool.execute("delete from hobbiesof where iduser=? and idhobbiesof=?",[iduser,idhobbie])
-        pool.end()
-
-         
-    }
-
-    getallhobiesForUser=async(iduser)=>{
-        const pool=await createpool()
-        pool.connect()
-        const [result]= await pool.execute(`select hof.idhobbiesof,hof.idhobbie,hof.iduser,h.namehobbie from 
-         hobbies h inner join hobbiesof hof on h.idhobbie=hof.idhobbie and iduser=?`,[iduser])
-        pool.end()
-         return result
-    }
     
     addInterestOrExpert=async(idineterestorexpert,iduser,expert)=>{
         const pool=await createpool()
@@ -215,10 +179,13 @@ class User{
 
     }
     checkexistwithid=async(iduser)=>{}
+
     checkexistdelet =async(username,email)=>{
         const pooltwo=await createpool()
         pooltwo.connect()
-        const [result]= await pooltwo.execute("select * from users where ( username=? or email=? ) and deleted=1",[username,email])
+        const [result]= await pooltwo.execute(`select iduser,username,email,name,apellidop,apellidom,birthday,telephononumber,
+        password,gender,status,code,deleted,created_at,updated_at,deleted_at
+         from users where ( username=? or email=? ) and deleted=1`,[username,email])
         pooltwo.end()
          
         return result
@@ -246,7 +213,7 @@ class User{
         pool.end()
        
     }
-   
+   //did
     addmajor=async(iduser,namemajor)=>{
         const pool=await createpool()
         pool.connect()
@@ -256,6 +223,8 @@ class User{
         pool.end()
         return resultwo
     }
+
+    //did
     updateSemester=async(iduser,semester)=>{
         const pool=await  createpool()
         pool.connect()
@@ -295,78 +264,22 @@ class User{
         pool.end()
        
     }
-
-   getallimages=async(page,limit,username,skip)=>{
-        
-         const pool=await createpool()
-         pool.connect()
-        if(page &&limit){
-            const [resultid]=await pool.execute(`
-            select count(usi.iduser) as countu  from users_media  usi 
-                      inner join files i on usi.idfile=i.idfile and iduser=? and usi.typeofimage!='File' and i.deleted!=1  `,[username])
-           const {countu}=resultid[0]
-           const totalpages=Math.ceil(countu/limit)
-           const [result]=await pool.execute(`select * from users_media usi 
-           inner join files i on usi.idfile=i.idfile and iduser=? and usi.typeofimage!='File' and i.deleted!=1 order by usi.created_at desc limit ${limit} offset ${skip}`,[username])
-           pool.end()
-            return {
-                totalImage:countu,
-                page:page,
-                result,
-                totalpages
-            }
-        }else{
-            const [result]=await pool.execute(`select * from users_media usi 
-            inner join files i on usi.idfile=i.idfile and iduser=? and usi.typeofimage!='File' and i.deleted!=1 order by usi.created_at  desc `,[username])
-             pool.end()
-             return {
-                 
-                 result,
-                 
-             }   
-        }
-        
-      
-    }
-
-    getallfriend=async(page,limit,iduser,skip)=>{
-        const pool=await createpool()
-        pool.connect()
-        if(page &&limit){
-            const [resultid]=await pool.execute(`select count(idfriendship) as friends from 
-            friends where (idfriendone=? or idfriendtwo=?)`,[iduser,iduser])
-            
-           const {friends}=resultid[0]
-           const totalpages=Math.ceil(friends/limit)
-           const [result]=await pool.execute(`select * from friends f where idfriendone=? or idfriendtwo=? order by created_at  desc limit ${limit} offset ${skip}`,[iduser,iduser])
-            pool.end()
-            return {
-                totalfriends:friends,
-                page:page,
-                result,
-                totalpages
-            }
-        }else{
-            const [result]=await pool.execute(`select * from friends f where idfriendone=? or idfriendtwo=? `,[iduser,iduser])
-             pool.end()
-             return {
-                 
-                 result,
-                 
-             }   
-        }
-    }
+   //did
 
 
+  
 
+
+//did
  addSocialMedia=async(iduser,link,idsocialMedia)=>{
     const pool=await createpool()
     pool.connect()
     await pool.execute("insert into socialmediofuser(iduser,usrlsocialmedia,idsocialmedia) values(?,?,?)",[iduser,link,idsocialMedia])
     pool.end()
  }
-  
 
+  
+//did
  getSocialMedia=async(iduser)=>{
     const pool=await createpool()
     pool.connect()
@@ -375,7 +288,7 @@ class User{
     pool.end()
     return result
  }
-    
+ //did   
  deleteSocialMedia=async(iduser,idsocialmediofuser)=>{
     const pool=await createpool()
     pool.connect()
@@ -384,13 +297,16 @@ class User{
     pool.end()
     
  }
-
+ //did
+ 
  updateSocialMedia=async(iduser,idsocialmediofuser,link)=>{
     const pool=await createpool()
     pool.connect()
     await pool.execute("update socialmediofuser set usrlsocialmedia=? where iduser=? and idsocialmediofuser=?",[link,iduser,idsocialmediofuser])
     pool.end()
  }
+
+ //did
  getOptionsSocialMedia=async()=>{
   const pool=await createpool()
   pool.connect()
@@ -400,75 +316,6 @@ class User{
 
  }
  
- 
-deleteFriend=async(iidfriendShip)=>{
-    const pool=await createpool()
-    pool.connect()
-    await pool.execute("delete from friends where idfriendship=?",[iidfriendShip])  
-    pool.end()
-}
- 
-sendFriendRequest=async(iduser,idfriend,pool)=>{
-    
-   const [result]= await pool.execute("select idSender,idrecives from sendfriendship where idrecives=? and idSender=? ",[iduser,idfriend])
-   const [resutlTwo]= await pool.execute("select idSender,idrecives from sendfriendship where idrecives=? and idSender=? ",[idfriend,iduser])
-    if(result.length>0 || resutlTwo.length>0){
-         throw new Error("Ya se envio la solicitud")
-    }
-  const [resultthree]=await pool.execute("select idfriendship from friends where idfriendone=? and idfriendtwo=? ",[iduser,idfriend])
-  const [resultfour]=await pool.execute("select idfriendship from friends where idfriendone=? and idfriendtwo=? ",[idfriend,iduser])
-    if(resultthree.length>0 || resultfour.length>0){
-        throw new Error("Ya son amigos")
-    }
-    
-    await pool.execute("insert into sendFriendShip(idSender,idrecives) values(?,?)",[iduser,idfriend])
-    
-}
-acceptFriendRequest=async(iduser,idfriend,pool)=>{
-    
-
-  const [result]=  await pool.execute("select idSender,idrecives from sendfriendship where idrecives=? and idSender=? ",[iduser,idfriend])
-  const {idSender,idrecives}=result[0]
-  const [resulttwo]=  await pool.execute("insert into friends(idfriendone,idfriendtwo) values(?,?)",[idSender,idrecives])
-  await pool.execute(`insert into mesagge(iduserone,idusertwo) values(?,?)`,[idSender,idrecives])
-  await pool.execute("delete from sendfriendship where idSender=? and idrecives=?",[idSender,idrecives])
-
-if(resulttwo.insertId==0){
-    throw new Error("No se agregro la publicacion")
-}
-return true
-  
-    
-}
-
-deleteRequestFriend=async(iduser,idfriend)=>{
-    const pool=await createpool()
-    pool.connect()
-    await pool.execute("delete from sendfriendship where idrecives=? and idSender=? ",[iduser,idfriend])
-    pool.end()
-}
-getRequestFriends=async(iduser)=>{
-    const pool=await createpool()
-    pool.connect()
-   const [result]= await pool.execute(`select idsendFriendShip,idrecives,idSender,create_at from sendfriendship where idrecives=?`,[iduser])
-   pool.end()
-   return result
-}
-getSolicitudesMandadas=async(iduser)=>{
-    const pool=await createpool()
-    pool.connect()
-    const [result]=await pool.execute(`select   idrecives,idSender,create_at  from  sendfriendship where idSender=?  `,[iduser])
-    pool.end()
-    return result
-
-
-}
-
-deleteSolicitudRequest=async(idrecives,idsender)=>{
-    const pool=await createpool()
-    pool.connect()
-    await pool.execute(`select`)
-}
 }
 
 module.exports=User
