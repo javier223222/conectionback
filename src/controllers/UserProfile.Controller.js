@@ -365,6 +365,7 @@ const getdescription=async(req,res)=>{
      })
     }
 }
+
 const getinteresofselect=async(req,res)=>{
     try{
        const data=await getTokenData(req.headers.authorization)
@@ -478,148 +479,8 @@ const deleteexpertORinterest=async(req,res)=>{
 
 }
 
-const addhobbie=async(req,res)=>{
-   try{
-    const data=await getTokenData(req.headers.authorization)
-    const {iduser}=data.data
-    const {namehobbie}=req.body
-    const user=new User()
-    await user.addhobbie(namehobbie)
-    const result=await user.getidhobbie(namehobbie)
-    const {idhobbie}=result[0]
-    await user.addhobbieofuser(iduser,idhobbie)
-    return res.status(200).json({
-        success:true,
-        message:"Hobbie agregado correctamente"
-    
-    })
-   }catch(e){
-    return  res.status(500).json({
-        success:false,
-        message:"Error al agregar hobbie",
-        error:e.message
-      })
-   }
-}
-const gethobbies=async(req,res)=>{
-    try{
-      const data=await getTokenData(req.headers.authorization)
-      const {iduser}=data.data
-      const {username}=req.query
-      const user=new User()
-      if(username){
-         const result=await user.checkwithusername(username)
-         const {iduser}=result[0]
-         const hobbies=await user.getallhobiesForUser(iduser)
-         return res.status(200).json({
-            success:true,
-            message:"Hobbies obtenidos correctamente",
-            result:hobbies.length==0?[]:hobbies
-         })
-      }
 
-         const hobbies=await user.getallhobiesForUser(iduser)
-          return res.status(200).json({
-            success:true,
-            message:"Hobbies obtenidos correctamente",
-            result:hobbies.length==0?[]:hobbies
-         })
-      
 
-          
-
-       
-
-    }catch(e){
-    return res.status(500).json({
-        success:false,
-        message:"Erro al obtener la los intereses o el experto del usuario",
-        error:e.message
-     })
-    }
-}
-const deletehobbies=async(req,res)=>{
-    try{
-       const data=await getTokenData(req.headers.authorization)
-       const {iduser}=data.data
-       const{idhobbiesof}=req.query
-       const user=new User()
-       await user.deletehobbie(iduser,idhobbiesof)
-      return res.status(200).json({
-        success:true,
-        message:"El hobbie fue eliminado correctamente"
-       })
-    }catch(e){
-         return res.status(200).json({
-            success:false,
-            message:"Error al eliminar el hobbie",
-            error:e.message
-         })
-    }
-}
-const getallimagesprofile=async(req,res)=>{
-    try{
-        const data=await getTokenData(req.headers.authorization)
-        const {username}=req.query
-        const {page,limit}=req.query
-        const skip=(page-1) * limit
-        const usert=new User()
-        let response={
-            message:"se obtuvieron correctamente las imagenes",
-           
-           }
-        if(username){
-            
-           
-         
-            const rows=await usert.checkwithusername(username)
-          
-            const {iduser}=rows[0]
-            if(rows.length==0){
-               return res.status(404).json({
-                    success:false,
-                    message:"El usuario no existe"
-                })
-    
-            }
-           
-           
-            const resultc=await usert.getallimages(page,limit,iduser,skip)
-            response={
-               ...response,
-               ...resultc
-            }
-            console.log(rows)
-           return res.status(200).json(response)
-           
-        
-        }else if(data){
-            
-         
-            
-            const {username,email,namemajor,iduser}=data.data
-            const user=new User(username,email,namemajor)
-            
-
-           
-            const resultc=await user.getallimages(page,limit,iduser,skip)
-            console.log(skip)
-            console.log(resultc)
-            response={
-               ...response,
-               ...resultc
-            }
-           return res.status(200).json(response)
-        }
-    }catch(e){
-        return res.status(500).json({
-            success:false,
-            message:"Erro al obtner las imagenes del usuario",
-            error:e.message
-         })
-    }
-    
-}
 
 
 const getpublications=async(req,res)=>{
@@ -702,7 +563,7 @@ const updateNumberSemester=async(req,res)=>{
     }
 
 }
- 
+//did
 const getSocialMediaOptions=async(req,res)=>{
     try{ 
        const user=new User()
@@ -722,6 +583,7 @@ const getSocialMediaOptions=async(req,res)=>{
         })
     }
 }
+//did
 const addSocialMedia=async(req,res)=>{
     try{
          const {idoption,link}=req.body
@@ -740,6 +602,8 @@ const addSocialMedia=async(req,res)=>{
       })
     }
 }
+
+//did
 const getSocialMedia=async(req,res)=>{
 
     try{
@@ -773,6 +637,8 @@ const getSocialMedia=async(req,res)=>{
     }
 }
 
+//did
+
 const updateSocialmedia=async(req,res)=>{
     try{
       const {idsocialmedia,nelink}=req.body
@@ -793,6 +659,8 @@ const updateSocialmedia=async(req,res)=>{
 
     }
 }
+//did
+
 const deleteSocialMedia=async(req,res)=>{
     try{
         const {idsocialmedia}=req.query
@@ -858,16 +726,13 @@ module.exports={
     getinteresofselect,
     addinterestOrExpert,
     getinteresorexpertofuser,
-    addhobbie,
-    gethobbies,
-    getallimagesprofile,
     getpublications,
     deleteprofile,
     updatename,
     updateapellidop,
     updataApellidoM,
     deleteexpertORinterest,
-    deletehobbies,
+   
     getinformation,
     getInformacionById,
     updateNumberSemester,

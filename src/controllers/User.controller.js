@@ -4,6 +4,7 @@ const { getToken, getTokenData } = require("../config/jwt.config")
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const User = require("../models/User.model");
+const Major = require("../models/Major.model");
 const saltRounds = 10;
 
 
@@ -13,6 +14,7 @@ const createNweUser=async (req,res)=>{
     try{
         const {username,nombre,apellidop,apellidom,correo,fechanacimiento,sexo,password,namemajor}=req.body
         const user=new User()
+       
         let encryppaswwor=password
         const code=uuidv4()
         const rows= await user.checkexist(username,correo)
@@ -43,8 +45,10 @@ const createNweUser=async (req,res)=>{
                });
            });
            
+     const major=new Major(namemajor)      
 
-     await user.addmajor(iduser,namemajor)            
+
+     await major.addMajor(iduser)            
 
 
           
