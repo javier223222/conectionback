@@ -1,4 +1,4 @@
-const { config } = require("./src/config/db.config")
+const { config,createpool } = require("./src/config/db.config")
 
 require("dotenv").config()
 
