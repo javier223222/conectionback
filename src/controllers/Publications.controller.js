@@ -442,7 +442,7 @@ const getAllFriendPublications=async(req,res,)=>{
             for (let y = 0; y < publiOfMyfrien.length; y++) {
                 const {username}=await user.getnameProfileannombre(result.result[i].idfriendone||result.result[i].idfriendtwo)
                 const imagenOduser=await user.getallimagesprofile(result.result[i].idfriendone||result.result[i].idfriendtwo,'Profile')
-                
+                console.log(result.result[i].idfriendone||result.result[i].idfriendtwo)
                 const {urlfile}=imagenOduser.length>0?imagenOduser[0]:{urlfile:null}
                 publiOfMyfrien[i]={...publiOfMyfrien[i],username,imageuser:urlfile}
                 
